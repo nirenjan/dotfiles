@@ -1,7 +1,7 @@
-vim-scripts
-===========
+dotfiles
+========
 
-Commonly used Vim scripts
+My dotfiles
 
-Copy the scripts to your ~/.vim/ folder
+Feel free to clone and modify as necessary.
 
