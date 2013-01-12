@@ -1,0 +1,29 @@
+# ==============================================================================
+# SCREEN SETTINGS
+# ==============================================================================
+
+# Altscreen allows applications like vim & less to use a separate screen for
+# their content
+altscreen on
+
+# Scrollback buffer length in lines
+defscrollback 20000
+
+# Add the stardate command to backtick, refresh every 60 seconds
+backtick 1 0 60 ~/bin/stardate
+backtick 2 0 0 whoami
+
+#caption always
+caption string "%?%F%{= KB}%?%n %t%= %?%F%{= KC}%:%{= KB}%?"
+
+hardstatus on
+hardstatus alwayslastline
+hardstatus string "%{.KW}%-w%{.bW}%n %t%{-}%+w %=%{..b}%2` %{..g}%H %{..y}%D %m-%d-%Y %c %{..r}%1`"
+
+# Load all default screens
+screen -t Scratch 0
+screen -t Work 2
+screen -t Build 3
+screen 4
+screen 5
+screen -t Git 1
