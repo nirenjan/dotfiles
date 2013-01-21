@@ -1,0 +1,10 @@
+#!/bin/bash
+# Set the Xterm/Tmux pane title
+
+if [[ -z $TMUX ]]
+then
+    echo -e "\033]0;$*\007"
+else
+    echo -e "\033k$*\033\\"
+fi
+
