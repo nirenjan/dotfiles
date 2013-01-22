@@ -1,6 +1,0 @@
-#!/usr/bin/env python
-
-import time
-
-print "%05.1f" % (time.time() / 31557.6)
-
