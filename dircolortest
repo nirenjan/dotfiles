@@ -29,8 +29,9 @@ while ($line = <DCFILE>) {
     if ($line ne '') {
         ($type, $format) = split /\s+/, $line;
 
-        # Ignore the TERM lines, we don't care about them here
-        next if ($type eq 'TERM');
+        # Ignore the following lines, we don't care about them here
+        next if (($type eq 'TERM') || ($type eq 'COLOR') ||
+                 ($type eq 'OPTIONS') || ($type eq 'EIGHTBIT'));
 
         # Just a little enhancement, if the type begins with a .
         if ($type =~ m/^\./) {
