@@ -1,0 +1,209 @@
+#!/bin/sh
+# Note taking script
+
+NOTES_DIR="$HOME/.notes"
+
+# Initialize with the default editor
+[ -z "$EDITOR" ] && EDITOR="/usr/bin/vim"
+
+notes_init() {
+    # Check if the notes folder exists, if not, create it
+    if [ ! -d $NOTES_DIR ]
+    then
+        echo -n "Creating notes folder..."
+        mkdir -p $NOTES_DIR
+        cd $NOTES_DIR
+        echo "done."
+
+        git init .
+    else
+        [ ! -z $1 ] && echo "Notes has already been initialized."
+    fi
+}
+
+make_title() {
+    echo "$*" | sed 's/[^A-Za-z0-9_-]\+/-/g'
+}
+
+title_to_name() {
+    note_file=$NOTES_DIR/$(make_title $note_arg)
+}
+
+check_arg() {
+    if [ -z "$note_arg" ]
+    then
+        echo "Must specify a note title!"
+        exit
+    fi
+}
+
+note_exists() {
+    [[ -f "$note_file" ]]
+}
+
+check_md5() {
+    if [[ "$note_old_md5" == "$note_new_md5" ]]
+    then
+        echo "No changes to '$note_arg'"
+
+        if [[ ! -z "$1" ]]
+        then
+            rm -f $1
+        fi
+
+        exit
+    fi
+}
+
+check_dir() {
+    if [[ ! -d "$NOTES_DIR" ]]
+    then
+        echo "Notes not initialized. Run init first!"
+        exit
+    fi
+}
+
+help_cmd() {
+    echo '
+Note taker for the Command Line
+===============================
+
+This is a bash script that lets you take notes which are maintained in a
+Git repository. You can run this script by typing the following command
+at the command line:
+
+Usage: note <command> <arguments>
+
+Commands
+--------
+
+    Command         Usage
+    new             Follow this with the note name to create a new note
+    edit            Follow this with the note name to edit an existing
+                    note
+    delete          Follow this with the note name to delete a note
+    list            Prints the list of available notes
+    hist            Displays the note history
+    init            Run this the very first time to set up the folders
+    help            Prints this help message
+'
+}
+
+parse_args() {
+    note_cmd=$1
+    shift
+    note_arg="$*"
+
+    case "$note_cmd" in
+    "help")
+        help_cmd
+        ;;
+
+    "new")
+        check_dir
+        check_arg
+        title_to_name
+
+        if note_exists
+        then
+            echo "Note '$note_arg' already exists! Use edit instead."
+            exit
+        fi
+
+        echo "$note_arg" > $note_file
+        note_old_md5=$(md5sum $note_file)
+
+        $EDITOR $note_file
+
+        note_new_title=$(head -1 $note_file)
+        note_new_md5=$(md5sum $note_file)
+        note_new_file=$(make_title $note_new_title)
+        check_md5 $note_file
+
+        cd $NOTES_DIR
+        gitfile=$(basename $note_new_file)
+
+        git add $gitfile
+        git commit -m "Create note '$note_new_title'"
+        echo "Created note '$note_new_title'"
+
+        ;;
+
+    "edit")
+        check_dir
+        check_arg
+        title_to_name
+        if ! note_exists
+        then
+            echo "Cannot find note '$note_arg'!"
+            exit
+        fi
+
+        note_old_title=$(head -1 $note_file)
+        note_old_md5=$(md5sum $note_file)
+
+        $EDITOR $note_file
+
+        note_new_title=$(head -1 $note_file)
+        note_new_md5=$(md5sum $note_file)
+
+        check_md5
+
+        cd $NOTES_DIR
+        gitfile=$(basename $note_file)
+        commit_msg="Update note '$note_new_title'"
+        if [[ "$note_old_title" != "$note_new_title" ]]
+        then
+            note_new_file=$(make_title $note_new_title)
+            
+            git mv $gitfile $note_new_file
+            git add $note_new_file
+            commit_msg="$commit_msg. Rename from '$note_old_title'"
+        else
+            git add $gitfile
+        fi
+
+        git commit -m "$commit_msg"
+        echo "Updated note '$note_new_title'"
+        ;;
+
+    "del" | "delete")
+        check_dir
+        check_arg
+        title_to_name
+        if ! note_exists
+        then
+            echo "Cannot find note '$note_arg'!"
+            exit
+        fi
+
+        cd $NOTES_DIR
+        gitfile=$(basename $note_file)
+        git rm $gitfile
+        git commit -m "Delete note '$note_arg'"
+        echo "Deleted note '$note_arg'"
+        ;;
+
+    "hist"|"history")
+        check_dir
+        cd $NOTES_DIR
+        git log --pretty=format:'%ai - %s' -- $note_arg
+        ;;
+    
+    "init")
+        notes_init warn
+        ;;
+    
+    "list")
+        check_dir
+        cd $NOTES_DIR
+        ls -1 $note_arg
+        ;;
+    
+    *)
+        echo "Unrecognized command '$note_cmd'. Use help."
+        ;;
+    esac
+}
+
+parse_args $*
