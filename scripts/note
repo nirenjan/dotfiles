@@ -1,6 +1,7 @@
-#!/bin/sh
-# Note taking script
+#!/bin/bash
+# Notes manager for the command line
 
+NOTES_VER="0.1a"
 NOTES_DIR="$HOME/.notes"
 
 # Initialize with the default editor
@@ -17,12 +18,13 @@ notes_init() {
 
         git init .
     else
-        [ ! -z $1 ] && echo "Notes has already been initialized."
+        echo "Notes has already been initialized."
     fi
 }
 
 make_title() {
-    echo "$*" | sed 's/[^A-Za-z0-9_-]\+/-/g'
+    echo "$*" | sed 's/[^A-Za-z0-9_-]\+/-/g' | \
+    sed 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'
 }
 
 title_to_name() {
@@ -65,8 +67,8 @@ check_dir() {
 
 help_cmd() {
     echo '
-Note taker for the Command Line
-===============================
+Notes Manager for the Command Line
+==================================
 
 This is a bash script that lets you take notes which are maintained in a
 Git repository. You can run this script by typing the following command
@@ -77,16 +79,21 @@ Usage: note <command> <arguments>
 Commands
 --------
 
-    Command         Usage
-    new             Follow this with the note name to create a new note
-    edit            Follow this with the note name to edit an existing
-                    note
-    delete          Follow this with the note name to delete a note
-    list            Prints the list of available notes
-    hist            Displays the note history
-    init            Run this the very first time to set up the folders
-    help            Prints this help message
+    Command     Usage
+    -------     -----
+    new         Follow this with the note name to create a new note
+    edit        Follow this with the note name to edit an existing note
+    delete      Follow this with the note name to delete a note
+    list        Prints the list of available notes
+    history     Displays the note history
+    init        Run this the very first time to set up the folders
+    help        Prints this help message
+    version     Prints the version information
 '
+}
+
+version_info() {
+    echo "Notes Manager version $NOTES_VER"
 }
 
 parse_args() {
@@ -191,7 +198,7 @@ parse_args() {
         ;;
     
     "init")
-        notes_init warn
+        notes_init
         ;;
     
     "list")
@@ -200,10 +207,20 @@ parse_args() {
         ls -1 $note_arg
         ;;
     
+    "ver" | "version")
+        version_info
+        ;;
+
     *)
         echo "Unrecognized command '$note_cmd'. Use help."
         ;;
     esac
 }
 
-parse_args $*
+if [[ $# -lt 1 ]]
+then
+    echo "Usage: note <command> <arguments>"
+    echo "Type 'note help' for detailed help"
+else
+    parse_args $*
+fi
