@@ -127,6 +127,12 @@ parse_args() {
         note_new_file=$(make_title $note_new_title)
         check_md5 $note_file
 
+        # Check for a title rename
+        if [[ "$note_file" != "$note_new_file" ]]
+        then
+            mv -f $note_file $note_new_file
+        fi
+
         cd $NOTES_DIR
         gitfile=$(basename $note_new_file)
 
