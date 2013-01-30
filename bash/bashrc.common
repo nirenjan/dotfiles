@@ -1,3 +1,10 @@
+# Add path function: check if path exists in $PATH, only then prepend the
+# specified path to PATH
+add_to_path() {
+    if [[ ! -z $1 && -d $1 && ":$PATH:" != *":$1:"* ]]; then
+        export PATH=$1:$PATH
+    fi
+}
 
 # Import the Git prompt shell functions. These can be found
 # @github:git/git/contrib/completion/git_prompt.sh
@@ -9,13 +16,11 @@ else
 fi
 
 # Add $HOME/bin to PATH
-if [[ ":$PATH:" != *":$HOME/bin:"* ]]
-then
-    export PATH=$HOME/bin:$PATH
-fi
+add_to_path $HOME/bin
 
 # Add ls coloring
-if [ -f $HOME/.bashrc.lscolors ]; then
+# Don't bother if LS_COLORS is already set
+if [[ -z $LS_COLORS && -f $HOME/.bashrc.lscolors ]]; then
     source $HOME/.bashrc.lscolors
 fi
 
