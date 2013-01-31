@@ -68,11 +68,14 @@ check_empty() {
     then
         if [[ "$1" == "restore" ]]
         then
+            cd "$NOTES_DIR"
             gitfile=$(basename "$note_file")
             git checkout $gitfile
+            echo "Restored empty note $note_arg"
         elif [[ "$1" == "delete" ]]
         then
             rm -f $note_file
+            echo "Deleted empty note $note_arg"
         fi
 
         exit
@@ -198,6 +201,19 @@ note_edit() {
     echo "Updated note '$note_new_title'"
 }
 
+note_show() {
+    check_dir
+    check_arg
+    title_to_name
+    if ! note_exists
+    then
+        echo "Cannot find note '$note_arg'!"
+        exit
+    fi
+
+    less -R $note_file
+}
+
 note_delete() {
     check_dir
     check_arg
@@ -264,6 +280,10 @@ parse_args() {
 
     "edit")
         note_edit
+        ;;
+
+    "show")
+        note_show
         ;;
 
     "del" | "delete")
