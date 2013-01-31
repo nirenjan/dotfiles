@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [[ $# -gt 0 ]]
+then
+    eval "$*"
+    echo -e "\007"
+fi
+
