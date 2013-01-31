@@ -71,11 +71,11 @@ check_empty() {
             cd "$NOTES_DIR"
             gitfile=$(basename "$note_file")
             git checkout $gitfile
-            echo "Restored empty note $note_arg"
+            echo "Restored empty note '$note_arg'"
         elif [[ "$1" == "delete" ]]
         then
             rm -f $note_file
-            echo "Deleted empty note $note_arg"
+            echo "Deleted empty note '$note_arg'"
         fi
 
         exit
@@ -88,6 +88,10 @@ check_dir() {
         echo "Notes not initialized. Run init first!"
         exit
     fi
+}
+
+md5_sum() {
+    openssl dgst -md5 $*
 }
 
 help_cmd() {
@@ -135,12 +139,12 @@ note_new() {
     fi
 
     echo "$note_arg" > $note_file
-    note_old_md5=$(md5sum $note_file)
+    note_old_md5=$(md5_sum $note_file)
 
     $EDITOR $note_file
 
     note_new_title=$(head -1 $note_file)
-    note_new_md5=$(md5sum $note_file)
+    note_new_md5=$(md5_sum $note_file)
     note_new_file=$NOTES_DIR/$(make_title $note_new_title)
     check_md5 $note_file
     check_empty delete
@@ -173,12 +177,12 @@ note_edit() {
     fi
 
     note_old_title=$(head -1 $note_file)
-    note_old_md5=$(md5sum $note_file)
+    note_old_md5=$(md5_sum $note_file)
 
     $EDITOR $note_file
 
     note_new_title=$(head -1 $note_file)
-    note_new_md5=$(md5sum $note_file)
+    note_new_md5=$(md5_sum $note_file)
 
     check_md5
     check_empty restore
