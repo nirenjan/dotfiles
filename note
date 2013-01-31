@@ -63,6 +63,22 @@ check_md5() {
     fi
 }
 
+check_empty() {
+    if [[ ! -s "$note_file" ]]
+    then
+        if [[ "$1" == "restore" ]]
+        then
+            gitfile=$(basename "$note_file")
+            git checkout $gitfile
+        elif [[ "$1" == "delete" ]]
+        then
+            rm -f $note_file
+        fi
+
+        exit
+    fi
+}
+
 check_dir() {
     if [[ ! -d "$NOTES_DIR" ]]
     then
@@ -92,6 +108,8 @@ Commands
     delete      Follow this with the note name to delete a note
     list        Prints the list of available notes
     history     Displays the note history
+    find        Finds all notes with the specified keyword in the filename
+    search      Finds all notes with the specified keyword in the text
     init        Run this the very first time to set up the folders
     help        Prints this help message
     version     Prints the version information
@@ -100,6 +118,134 @@ Commands
 
 version_info() {
     echo "Notes Manager version $NOTES_VER"
+}
+
+note_new() {
+    check_dir
+    check_arg
+    title_to_name
+
+    if note_exists
+    then
+        echo "Note '$note_arg' already exists! Use edit instead."
+        exit
+    fi
+
+    echo "$note_arg" > $note_file
+    note_old_md5=$(md5sum $note_file)
+
+    $EDITOR $note_file
+
+    note_new_title=$(head -1 $note_file)
+    note_new_md5=$(md5sum $note_file)
+    note_new_file=$NOTES_DIR/$(make_title $note_new_title)
+    check_md5 $note_file
+    check_empty delete
+
+    dprint "Original filename = " $note_file
+    dprint "New filename = " $note_new_file
+
+    # Check for a title rename
+    if [[ "$note_file" != "$note_new_file" ]]
+    then
+        mv -f $note_file $note_new_file
+    fi
+
+    cd $NOTES_DIR
+    gitfile=$(basename $note_new_file)
+
+    git add $gitfile
+    git commit -m "Create note '$note_new_title'"
+    echo "Created note '$note_new_title'"
+}
+
+note_edit() {
+    check_dir
+    check_arg
+    title_to_name
+    if ! note_exists
+    then
+        echo "Cannot find note '$note_arg'!"
+        exit
+    fi
+
+    note_old_title=$(head -1 $note_file)
+    note_old_md5=$(md5sum $note_file)
+
+    $EDITOR $note_file
+
+    note_new_title=$(head -1 $note_file)
+    note_new_md5=$(md5sum $note_file)
+
+    check_md5
+    check_empty restore
+
+    cd $NOTES_DIR
+    gitfile=$(basename $note_file)
+    commit_msg="Update note '$note_new_title'"
+    if [[ "$note_old_title" != "$note_new_title" ]]
+    then
+        note_new_file=$(make_title $note_new_title)
+        
+        git mv $gitfile $note_new_file
+        git add $note_new_file
+        commit_msg="$commit_msg. Rename from '$note_old_title'"
+    else
+        git add $gitfile
+    fi
+
+    git commit -m "$commit_msg"
+    echo "Updated note '$note_new_title'"
+}
+
+note_delete() {
+    check_dir
+    check_arg
+    title_to_name
+    if ! note_exists
+    then
+        echo "Cannot find note '$note_arg'!"
+        exit
+    fi
+
+    cd $NOTES_DIR
+    gitfile=$(basename $note_file)
+    git rm $gitfile
+    git commit -m "Delete note '$note_arg'"
+    echo "Deleted note '$note_arg'"
+}
+
+note_history() {
+    check_dir
+    cd $NOTES_DIR
+    git log --pretty=format:'%ai - %s' -- $note_arg
+}
+
+note_list() {
+    check_dir
+    cd $NOTES_DIR
+    if [[ -z "$1" ]]
+    then
+        ls -1
+    else
+        ls -1 | grep -i $1
+    fi
+}
+
+note_search() {
+    check_dir
+    
+    if [[ -z "$1" ]]; then
+        echo "Must specify a pattern to search titles!"
+        exit
+    fi
+
+    cd $NOTES_DIR
+    for file in *
+    do
+        grep --color=always -il "\<$1\>" $file
+        grep --color=always -inhT -m2 -C1 "\<$1\>" $file
+    done
 }
 
 parse_args() {
@@ -113,115 +259,33 @@ parse_args() {
         ;;
 
     "new")
-        check_dir
-        check_arg
-        title_to_name
-
-        if note_exists
-        then
-            echo "Note '$note_arg' already exists! Use edit instead."
-            exit
-        fi
-
-        echo "$note_arg" > $note_file
-        note_old_md5=$(md5sum $note_file)
-
-        $EDITOR $note_file
-
-        note_new_title=$(head -1 $note_file)
-        note_new_md5=$(md5sum $note_file)
-        note_new_file=$NOTES_DIR/$(make_title $note_new_title)
-        check_md5 $note_file
-
-        dprint "Original filename = " $note_file
-        dprint "New filename = " $note_new_file
-
-        # Check for a title rename
-        if [[ "$note_file" != "$note_new_file" ]]
-        then
-            mv -f $note_file $note_new_file
-        fi
-
-        cd $NOTES_DIR
-        gitfile=$(basename $note_new_file)
-
-        git add $gitfile
-        git commit -m "Create note '$note_new_title'"
-        echo "Created note '$note_new_title'"
-
+        note_new
         ;;
 
     "edit")
-        check_dir
-        check_arg
-        title_to_name
-        if ! note_exists
-        then
-            echo "Cannot find note '$note_arg'!"
-            exit
-        fi
-
-        note_old_title=$(head -1 $note_file)
-        note_old_md5=$(md5sum $note_file)
-
-        $EDITOR $note_file
-
-        note_new_title=$(head -1 $note_file)
-        note_new_md5=$(md5sum $note_file)
-
-        check_md5
-
-        cd $NOTES_DIR
-        gitfile=$(basename $note_file)
-        commit_msg="Update note '$note_new_title'"
-        if [[ "$note_old_title" != "$note_new_title" ]]
-        then
-            note_new_file=$(make_title $note_new_title)
-            
-            git mv $gitfile $note_new_file
-            git add $note_new_file
-            commit_msg="$commit_msg. Rename from '$note_old_title'"
-        else
-            git add $gitfile
-        fi
-
-        git commit -m "$commit_msg"
-        echo "Updated note '$note_new_title'"
+        note_edit
         ;;
 
     "del" | "delete")
-        check_dir
-        check_arg
-        title_to_name
-        if ! note_exists
-        then
-            echo "Cannot find note '$note_arg'!"
-            exit
-        fi
-
-        cd $NOTES_DIR
-        gitfile=$(basename $note_file)
-        git rm $gitfile
-        git commit -m "Delete note '$note_arg'"
-        echo "Deleted note '$note_arg'"
+        note_delete
         ;;
 
     "hist"|"history")
-        check_dir
-        cd $NOTES_DIR
-        git log --pretty=format:'%ai - %s' -- $note_arg
+        note_history
         ;;
     
     "init")
         notes_init
         ;;
     
-    "list")
-        check_dir
-        cd $NOTES_DIR
-        ls -1 $note_arg
+    "list" | "find")
+        note_list $1
         ;;
     
+    "search")
+        note_search $1
+        ;;
+
     "ver" | "version")
         version_info
         ;;
