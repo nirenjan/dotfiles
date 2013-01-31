@@ -107,16 +107,17 @@ Usage: note <command> <arguments>
 
 Commands
 --------
+You can use the first letter of each command as a shortcut key.
 
     Command     Usage
     -------     -----
     new         Follow this with the note name to create a new note
     edit        Follow this with the note name to edit an existing note
+    show        Follow this with the note name to display an existing note
     delete      Follow this with the note name to delete a note
-    list        Prints the list of available notes
-    history     Displays the note history
-    find        Finds all notes with the specified keyword in the filename
-    search      Finds all notes with the specified keyword in the text
+    find        Prints the list of available notes
+    log         Displays the note history
+    grep        Finds all notes with the specified keyword in the text
     init        Run this the very first time to set up the folders
     help        Prints this help message
     version     Prints the version information
@@ -274,43 +275,43 @@ parse_args() {
     note_arg="$*"
 
     case "$note_cmd" in
-    "help")
+    "h" | "help")
         help_cmd
         ;;
 
-    "new")
+    "n" | "new")
         note_new
         ;;
 
-    "edit")
+    "e" | "edit")
         note_edit
         ;;
 
-    "show")
+    "s" | "show")
         note_show
         ;;
 
-    "del" | "delete")
+    "d" | "delete")
         note_delete
         ;;
 
-    "hist"|"history")
+    "l" | "log")
         note_history
         ;;
     
-    "init")
+    "i" | "init")
         notes_init
         ;;
     
-    "list" | "find")
+    "f" | "find")
         note_list $1
         ;;
     
-    "search")
+    "g" | "grep")
         note_search $1
         ;;
 
-    "ver" | "version")
+    "v" | "version")
         version_info
         ;;
 
