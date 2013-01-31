@@ -7,6 +7,12 @@ NOTES_DIR="$HOME/.notes"
 # Initialize with the default editor
 [ -z "$EDITOR" ] && EDITOR="/usr/bin/vim"
 
+dprint() {
+    if [ ! -z $NOTES_DEBUG ]; then
+        echo $*
+    fi
+}
+
 notes_init() {
     # Check if the notes folder exists, if not, create it
     if [ ! -d $NOTES_DIR ]
@@ -23,7 +29,7 @@ notes_init() {
 }
 
 make_title() {
-    echo "$*" | sed 's/[^A-Za-z0-9_-]\+/-/g' | \
+    echo "$*" | sed 's/[^A-Za-z0-9_]\+/-/g' | \
     sed 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'
 }
 
@@ -124,8 +130,11 @@ parse_args() {
 
         note_new_title=$(head -1 $note_file)
         note_new_md5=$(md5sum $note_file)
-        note_new_file=$(make_title $note_new_title)
+        note_new_file=$NOTES_DIR/$(make_title $note_new_title)
         check_md5 $note_file
+
+        dprint "Original filename = " $note_file
+        dprint "New filename = " $note_new_file
 
         # Check for a title rename
         if [[ "$note_file" != "$note_new_file" ]]
