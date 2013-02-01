@@ -30,3 +30,5 @@ if [ -f $HOME/.aliases ]; then
     source $HOME/.aliases 
 fi
 
+# Use vi mode
+set -o vi
