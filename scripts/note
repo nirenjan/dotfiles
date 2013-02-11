@@ -264,8 +264,8 @@ note_search() {
     cd $NOTES_DIR
     for file in *
     do
-        grep --color=always -il "\<$1\>" $file
-        grep --color=always -inhT -m2 -C1 "\<$1\>" $file
+        grep --color=always -il "$1" $file
+        grep --color=always -inhT -m2 -C1 "$1" $file
     done
 }
 
