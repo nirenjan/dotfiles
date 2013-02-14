@@ -10,9 +10,9 @@ add_to_path() {
 # @github:git/git/contrib/completion/git_prompt.sh
 if [ -f $HOME/.git_prompt.sh ]; then
     source $HOME/.git_prompt.sh
-    export PS1='\e[34m\u@\h \e[0m[\e[32m\w$(__git_ps1 " \e[33m(%s)")\e[0m] '
+    export PS1='\e[34m\u@\h \e[0m[\e[32m$(smartwd)$(__git_ps1 " \e[33m(%s)")\e[0m] '
 else
-    export PS1='\e[34m\u@\h \e[0m[\e[32m\w\e[0m] '
+    export PS1='\e[34m\u@\h \e[0m[\e[32m$(smartwd)\e[0m] '
 fi
 
 # Add $HOME/bin to PATH
