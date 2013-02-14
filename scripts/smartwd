@@ -1,0 +1,45 @@
+#!/usr/bin/env ruby
+# -*- ruby -*-
+# Script to smartly chop off portions of the current working directory for
+# use in the shell prompt
+
+# Constants used to decide when to start chopping
+DIRLIM = 4
+PWDLEN = 14
+
+def smartwd
+    username = ENV['USER']
+    homedir = ENV['HOME']
+    pwd = ENV['PWD']
+
+    path = pwd.split('/')
+    #pwd = pwd.gsub(homedir, '~')
+
+    # Ignore the root path
+    if (path.length > 0)
+        index = path.index(username)
+        if index
+            prefix = path.shift(index + 1)
+            
+            # We need to map additional paths in environments where the user
+            # may have more than one available folder in his/her name.
+            if prefix.join('/') == homedir
+                path.unshift('~')
+            else
+                # The first entry in the prefix array is the empty string
+                pre = prefix[1].split('').shift(4).join('') + '~'
+                path.unshift(pre)
+            end
+        else
+            # Replace the first two entries in the array with /<entry1>
+            # (because the first entry is always empty string)
+            prefix = path.shift(2).join('/')
+            path.unshift(prefix)
+        end
+    end
+
+    puts username, homedir, pwd, prefix.inspect, path.inspect
+end
+
+smartwd
+
