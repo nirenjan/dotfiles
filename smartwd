@@ -4,7 +4,9 @@
 # use in the shell prompt
 
 # Constants used to decide when to start chopping
-DIRLIM = 4
+DIRLIM = 5
+DIR_L = 3
+DIR_R = 2
 PWDLEN = 14
 
 def smartwd
@@ -13,7 +15,6 @@ def smartwd
     pwd = ENV['PWD']
 
     path = pwd.split('/')
-    #pwd = pwd.gsub(homedir, '~')
 
     # Ignore the root path
     if (path.length > 0)
@@ -36,9 +37,18 @@ def smartwd
             prefix = path.shift(2).join('/')
             path.unshift(prefix)
         end
+
+        # Check to make sure that both the DIRLIM and PWDLEN constraints
+        # are met before splitting
+        pwd = path.join('/')
+        if path.length > DIRLIM and pwd.length > PWDLEN
+            pwd_l = path.shift(DIR_L).join('/')
+            pwd_r = path.pop(DIR_R).join('/')
+            pwd = pwd_l + '/.../' + pwd_r
+        end
     end
 
-    puts username, homedir, pwd, prefix.inspect, path.inspect
+    print pwd
 end
 
 smartwd
