@@ -3,11 +3,21 @@
 # Script to smartly chop off portions of the current working directory for
 # use in the shell prompt
 
+# Some of the methods don't work with Ruby versions older than 1.8.7
+min_release = "1.8.7 (2008-08-11)"
+ruby_release = "#{RUBY_VERSION} (#{RUBY_RELEASE_DATE})"
+
 # Constants used to decide when to start chopping
 DIRLIM = 5
 DIR_L = 3
 DIR_R = 2
 PWDLEN = 14
+
+def backslash_w
+    homedir = ENV['HOME']
+    pwd = ENV['PWD']
+    print pwd.gsub(homedir, '~')
+end
 
 def smartwd
     username = ENV['USER']
@@ -51,5 +61,9 @@ def smartwd
     print pwd
 end
 
-smartwd
+if (ruby_release < min_release)
+    backslash_w
+else
+    smartwd
+end
 
