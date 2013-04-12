@@ -14,56 +14,56 @@ DIR_R = 2
 PWDLEN = 14
 
 def backslash_w
-    homedir = ENV['HOME']
-    pwd = ENV['PWD']
-    print pwd.gsub(homedir, '~')
+  homedir = ENV['HOME']
+  pwd = ENV['PWD']
+  print pwd.gsub(homedir, '~')
 end
 
 def smartwd
-    username = ENV['USER']
-    homedir = ENV['HOME']
-    pwd = ENV['PWD']
+  username = ENV['USER']
+  homedir = ENV['HOME']
+  pwd = ENV['PWD']
 
-    path = pwd.split('/')
+  path = pwd.split('/')
 
-    # Ignore the root path
-    if (path.length > 0)
-        index = path.index(username)
-        if index
-            prefix = path.shift(index + 1)
-            
-            # We need to map additional paths in environments where the user
-            # may have more than one available folder in his/her name.
-            if prefix.join('/') == homedir
-                path.unshift('~')
-            else
-                # The first entry in the prefix array is the empty string
-                pre = prefix[1].split('').shift(4).join('') + '~'
-                path.unshift(pre)
-            end
-        else
-            # Replace the first two entries in the array with /<entry1>
-            # (because the first entry is always empty string)
-            prefix = path.shift(2).join('/')
-            path.unshift(prefix)
-        end
+  # Ignore the root path
+  if (path.length > 0)
+    index = path.index(username)
+    if index
+      prefix = path.shift(index + 1)
 
-        # Check to make sure that both the DIRLIM and PWDLEN constraints
-        # are met before splitting
-        pwd = path.join('/')
-        if path.length > DIRLIM and pwd.length > PWDLEN
-            pwd_l = path.shift(DIR_L).join('/')
-            pwd_r = path.pop(DIR_R).join('/')
-            pwd = pwd_l + '/.../' + pwd_r
-        end
+      # We need to map additional paths in environments where the user
+      # may have more than one available folder in his/her name.
+      if prefix.join('/') == homedir
+        path.unshift('~')
+      else
+        # The first entry in the prefix array is the empty string
+        pre = prefix[1].split('').shift(4).join('') + '~'
+        path.unshift(pre)
+      end
+    else
+      # Replace the first two entries in the array with /<entry1>
+      # (because the first entry is always empty string)
+      prefix = path.shift(2).join('/')
+      path.unshift(prefix)
     end
 
-    print pwd
+    # Check to make sure that both the DIRLIM and PWDLEN constraints
+    # are met before splitting
+    pwd = path.join('/')
+    if path.length > DIRLIM and pwd.length > PWDLEN
+      pwd_l = path.shift(DIR_L).join('/')
+      pwd_r = path.pop(DIR_R).join('/')
+      pwd = pwd_l + '/.../' + pwd_r
+    end
+  end
+
+  print pwd
 end
 
 if (ruby_release < min_release)
-    backslash_w
+  backslash_w
 else
-    smartwd
+  smartwd
 end
 
