@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# Install file to destination folder
+insfile()
+{
+    rsync -av "$DF_PATH/$1" "$2"
+}
+
+# Symlink file to destination folder
+lnfile()
+{
+    FILE_PATH=$(dirname $2)
+    FILE_NAME=$(basename $2)
+    echo pushd $FILE_PATH
+    pushd $FILE_PATH
+    echo ln -s "$DF_PATH/$1" $FILE_NAME
+    ln -s "$DF_PATH/$1" $FILE_NAME
+    echo popd
+    popd
+}
+
+# Install scripts to corresponding destination folders
+cd $(dirname $0)
+DF_PATH=$(pwd)
+PRINT_PATH=$(echo $DF_PATH | sed "s:^$HOME:~:")
+echo Installing dotfiles from $PRINT_PATH
+
+# Install vim files
+lnfile vimrc ~/.vimrc
