@@ -12,5 +12,5 @@ t = time.time()
 jd = (t / 86400.0 + 40587.5)
 
 # Use the idea that 10 Julian days is equal to 1 stardate
-print ("%05.3f" % jd)[:-1]
+print ("%05.9f" % jd)[:-7]
 
