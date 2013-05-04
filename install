@@ -1,9 +1,25 @@
-#!/bin/sh
+#!/bin/bash
 
-# Install file to destination folder
-insfile()
+#######################################################################
+# Helper functions
+#######################################################################
+
+# Make a folder (throw errors if it's already there but not a folder)
+mkfolder()
 {
-    rsync -av "$DF_PATH/$1" "$2"
+    if [[ -e $1 ]]
+    then
+        if [[ ! -d $1 ]]
+        then
+            echo "$1 is not a directory!"
+            echo "Backing up $1 to $1.bak"
+            mv -v $1 $1.bak
+
+            mkdir -p $1
+        fi
+    else
+        mkdir -p $1
+    fi
 }
 
 # Symlink file to destination folder
@@ -11,19 +27,186 @@ lnfile()
 {
     FILE_PATH=$(dirname $2)
     FILE_NAME=$(basename $2)
-    echo pushd $FILE_PATH
-    pushd $FILE_PATH
-    echo ln -s "$DF_PATH/$1" $FILE_NAME
-    ln -s "$DF_PATH/$1" $FILE_NAME
-    echo popd
-    popd
+    DEST_FILE="$DF_PATH/$1"
+    WRITE_LINK=0
+    # See if the target exists
+    if [[ -e $2 ]]
+    then
+        # Is the target a symbolic link?
+        if [[ -L $2 ]]
+        then
+            POINTS_TO=$(readlink $2)
+            # Does it point to our file?
+            if [[ "$POINTS_TO" != "$DEST_FILE" ]]
+            then
+                echo "Target $2 points to a different file - $POINTS_TO"
+                echo -n "Replace link to point to $DEST_FILE? [y/n] "
+                read -n1
+                echo
+
+                if [[ $REPLY == y || $REPLY == Y ]]
+                then
+                    WRITE_LINK=1
+                    # Remove the old symbolic link
+                    rm -f $2
+                fi
+            #else
+                # It already points to our file. No point in rewriting it.
+            fi
+        else
+            # No, it's not a symbolic link
+            echo "Target $2 is not a symbolic link!"
+            echo "Backing up to $2.bak"
+            mv -v $2 ${2}.bak
+            WRITE_LINK=1
+        fi
+    fi
+
+    if [[ $WRITE_LINK == 1 ]]
+    then
+        echo "Installing $1"
+        pushd $FILE_PATH >/dev/null
+        ln -s "$DF_PATH/$1" $FILE_NAME
+        popd >/dev/null
+    fi
 }
 
-# Install scripts to corresponding destination folders
+# Install/update vim bundles
+vim_update_bundle()
+{
+    BUNDLE=$(echo $1 | sed 's:^.*/::' | sed 's:\.git$::')
+    # If the bundle already exists, update it (if possible)
+    if [[ -d "$HOME/.vim/bundle/$BUNDLE" ]]
+    then
+        if [[ -d "$HOME/.vim/bundle/$BUNDLE/.git" ]]
+        then
+            echo "Updating bundle $BUNDLE..."
+            pushd "$HOME/.vim/bundle/$BUNDLE" >/dev/null
+            git pull
+            popd >/dev/null
+            echo
+        else
+            echo "$BUNDLE is not a Git repository. Skipping update."
+        fi
+    else
+        echo "Installing bundle $BUNDLE..."
+        pushd "$HOME/.vim/bundle/" >/dev/null
+        git clone $1
+        popd >/dev/null
+        echo
+    fi
+}
+
+#######################################################################
+# Install dotfiles
+#######################################################################
+
+# Install scripts/config files to corresponding destination folders
 cd $(dirname $0)
 DF_PATH=$(pwd)
 PRINT_PATH=$(echo $DF_PATH | sed "s:^$HOME:~:")
 echo Installing dotfiles from $PRINT_PATH
 
+#######################################################################
+# Install scripts
+#######################################################################
+
+# Create ~/bin folder
+mkfolder ~/bin
+
+# Install scripts
+lnfile scripts/beep ~/bin/beep
+lnfile scripts/sdate ~/bin/stardate
+lnfile scripts/settitle ~/bin/settitle
+lnfile scripts/smartwd ~/bin/smartwd
+
+# Don't bother installing the note script on a Mac, it doesn't work that well
+if [[ "$(uname)" != *"Darwin"* ]]
+then
+    lnfile scripts/note ~/bin/note
+    lnfile scripts/note ~/bin/n
+fi
+
+#######################################################################
+# Install git configuration
+#######################################################################
+if [[ ! -e ~/.gitconfig ]]
+then
+    echo "Installing gitconfig"
+    cp -v gitconfig ~/.gitconfig
+    echo -n "What is your default Git username? "
+    read $GIT_USER
+    echo -n "What is your default Git e-mail address? "
+    read $GIT_EMAIL
+    git config --global user.name $GIT_USER
+    git config --global user.email $GIT_EMAIL
+fi
+
+#######################################################################
+# Install vimrc & plugins
+#######################################################################
+
+# Create VIM folders
+mkfolder ~/.vim
+mkfolder ~/.vim/autoload
+mkfolder ~/.vim/bundle
+mkfolder ~/.vim/colors
+mkfolder ~/.vim/plugin
+mkfolder ~/.vim/syntax
+
 # Install vim files
 lnfile vimrc ~/.vimrc
+
+# Install my plugins
+lnfile vim/plugin/long-lines.vim ~/.vim/plugin/long-lines.vim
+lnfile vim/plugin/match-brackets.vim ~/.vim/plugin/match-brackets.vim
+lnfile vim/plugin/tab-expand.vim ~/.vim/plugin/tab-expand.vim
+
+# Install pathogen
+if [[ ! -f ~/.vim/autoload/pathogen.vim ]]
+then
+    echo "Installing vim-pathogen"
+    curl -Sso ~/.vim/autoload/pathogen.vim \
+    https://raw.github.com/tpope/vim-pathogen/master/autoload/pathogen.vim
+fi
+
+#######################################################################
+# Install/update Vim bundles
+#######################################################################
+# tmux config file syntax
+vim_update_bundle https://github.com/zaiste/tmux.vim.git
+
+# Solarized
+vim_update_bundle https://github.com/altercation/vim-colors-solarized.git
+
+#######################################################################
+# Install tmux & screen config files
+#######################################################################
+
+# Install tmux configuration file
+lnfile tmux.conf ~/.tmux.conf
+
+# Install screen configuration file
+lnfile screenrc ~/.screenrc
+
+#######################################################################
+# Install bashrc files
+#######################################################################
+if [[ -L ~/.bashrc.common ]]
+then
+    PRINT_INST=0
+else
+    PRINT_INST=1
+fi
+
+lnfile bash/bashrc.common ~/.bashrc.common
+lnfile bash/bashrc.lscolors ~/.bashrc.lscolors
+lnfile dircolors ~/.dir_colors
+
+if [[ $PRINT_INST == 1 ]]
+then
+    echo "Add the following lines to your ~/.bashrc file"
+    echo "    source ~/.bashrc.common"
+    echo "    source ~/.bashrc.lscolors"
+fi
+
