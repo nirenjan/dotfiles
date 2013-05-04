@@ -29,6 +29,7 @@ lnfile()
     FILE_NAME=$(basename $2)
     DEST_FILE="$DF_PATH/$1"
     WRITE_LINK=0
+
     # See if the target exists
     if [[ -e $2 ]]
     then
@@ -60,6 +61,8 @@ lnfile()
             mv -v $2 ${2}.bak
             WRITE_LINK=1
         fi
+    else
+        WRITE_LINK=1
     fi
 
     if [[ $WRITE_LINK == 1 ]]
