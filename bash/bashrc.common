@@ -6,13 +6,19 @@ add_to_path() {
     fi
 }
 
+# Define the colors used by the prompt
+T_B=$(tput setaf 4) # Blue
+T_G=$(tput setaf 2) # Green
+T_Y=$(tput setaf 3) # Yellow
+T_S=$(tput sgr0)    # Reset
+
 # Import the Git prompt shell functions. These can be found
 # @github:git/git/contrib/completion/git_prompt.sh
 if [ -f $HOME/.git_prompt.sh ]; then
     source $HOME/.git_prompt.sh
-    export PS1='\e[34m\u@\h \e[0m[\e[32m$(smartwd)$(__git_ps1 " \e[33m(%s)")\e[0m] '
+    export PS1='\[$T_B\]\u@\h \[$T_S\][\[$T_G\]$(smartwd)$(__git_ps1 " \[$T_Y\](%s)")\[$T_S\]]\$ '
 else
-    export PS1='\e[34m\u@\h \e[0m[\e[32m$(smartwd)\e[0m] '
+    export PS1='\[$T_B\]\u@\h \[$T_S\][\[$T_G\]$(smartwd)\[$T_S\]]\$ '
 fi
 
 # Add $HOME/bin to PATH
