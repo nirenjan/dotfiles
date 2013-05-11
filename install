@@ -190,6 +190,9 @@ vim_update_bundle https://github.com/zaiste/tmux.vim.git
 # Solarized
 vim_update_bundle https://github.com/altercation/vim-colors-solarized.git
 
+# Vimwiki
+vim_update_bundle https://github.com/vim-scripts/vimwiki.git
+
 #######################################################################
 # Install tmux & screen config files
 #######################################################################
