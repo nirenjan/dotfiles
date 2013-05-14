@@ -162,6 +162,7 @@ mkfolder ~/.vim
 mkfolder ~/.vim/autoload
 mkfolder ~/.vim/bundle
 mkfolder ~/.vim/colors
+mkfolder ~/.vim/ftplugin
 mkfolder ~/.vim/plugin
 mkfolder ~/.vim/syntax
 
@@ -172,6 +173,9 @@ lnfile vimrc ~/.vimrc
 lnfile vim/plugin/long-lines.vim ~/.vim/plugin/long-lines.vim
 lnfile vim/plugin/match-brackets.vim ~/.vim/plugin/match-brackets.vim
 lnfile vim/plugin/tab-expand.vim ~/.vim/plugin/tab-expand.vim
+
+# Install my filetype plugins
+lnfile vim/ftplugin/perl.vim ~/.vim/ftplugin/perl.vim
 
 # Install pathogen
 if [[ ! -f ~/.vim/autoload/pathogen.vim ]]
