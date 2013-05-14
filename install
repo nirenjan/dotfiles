@@ -193,6 +193,9 @@ vim_update_bundle https://github.com/altercation/vim-colors-solarized.git
 # Vimwiki
 vim_update_bundle https://github.com/vim-scripts/vimwiki.git
 
+# snipMate
+vim_update_bundle https://github.com/msanders/snipmate.vim.git
+
 #######################################################################
 # Install tmux & screen config files
 #######################################################################
