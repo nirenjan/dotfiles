@@ -84,7 +84,7 @@ lnfile()
     if [[ $WRITE_LINK == 1 ]]
     then
         echo "Installing $1"
-        ln -s "$SRC_FILE" "$DST_FILE"
+        ln -sf "$SRC_FILE" "$DST_FILE"
     fi
 }
 
@@ -133,7 +133,7 @@ mkfolder ~/bin
 
 # Install scripts
 lnfile scripts/beep ~/bin/
-lnfile scripts/sdate ~/bin/stardate
+lnfile scripts/stardate ~/bin/
 lnfile scripts/settitle ~/bin/
 lnfile scripts/smartwd ~/bin/
 
