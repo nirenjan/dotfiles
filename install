@@ -25,23 +25,32 @@ mkfolder()
 # Symlink file to destination folder
 lnfile()
 {
-    FILE_PATH=$(dirname $2)
-    FILE_NAME=$(basename $2)
-    DEST_FILE="$DF_PATH/$1"
+    # See if we are linking to a directory
+    if [[ $2 =~ /$ ]]
+    then
+        FILE_PATH=$2
+        FILE_NAME=$(basename $1)
+        DST_FILE="${FILE_PATH}${FILE_NAME}"
+    else
+        FILE_PATH=$(dirname $2)
+        FILE_NAME=$(basename $2)
+        DST_FILE="$FILE_PATH/$FILE_NAME"
+    fi
+    SRC_FILE="$DF_PATH/$1"
     WRITE_LINK=0
 
     # See if the target exists
-    if [[ -e $2 ]]
+    if [[ -e $DST_FILE ]]
     then
         # Is the target a symbolic link?
-        if [[ -L $2 ]]
+        if [[ -L $DST_FILE ]]
         then
-            POINTS_TO=$(readlink $2)
+            POINTS_TO=$(readlink $DST_FILE)
             # Does it point to our file?
-            if [[ "$POINTS_TO" != "$DEST_FILE" ]]
+            if [[ "$POINTS_TO" != "$SRC_FILE" ]]
             then
-                echo "Target $2 points to a different file - $POINTS_TO"
-                echo -n "Replace link to point to $DEST_FILE? [y/n] "
+                echo "Target $DST_FILE points to a different file - $POINTS_TO"
+                echo -n "Replace link to point to $SRC_FILE? [y/n] "
                 read -n1
                 echo
 
@@ -49,28 +58,33 @@ lnfile()
                 then
                     WRITE_LINK=1
                     # Remove the old symbolic link
-                    rm -f $2
+                    rm -f $DST_FILE
                 fi
             #else
                 # It already points to our file. No point in rewriting it.
             fi
         else
             # No, it's not a symbolic link
-            echo "Target $2 is not a symbolic link!"
-            echo "Backing up to $2.bak"
-            mv -v $2 ${2}.bak
+            echo "Target $DST_FILE is not a symbolic link!"
+            echo "Backing up to $DST_FILE.bak"
+            mv -v $DST_FILE ${DST_FILE}.bak
             WRITE_LINK=1
         fi
     else
         WRITE_LINK=1
     fi
 
+    if [[ ! -z $DEBUG ]]
+    then
+        echo -n "Linking "
+        [[ ! -z $WRITE_LINK ]] && echo -n "(NOT) "
+        echo "'$DST_FILE' -> '$SRC_FILE'"
+    fi
+
     if [[ $WRITE_LINK == 1 ]]
     then
         echo "Installing $1"
-        pushd $FILE_PATH >/dev/null
-        ln -s "$DF_PATH/$1" $FILE_NAME
-        popd >/dev/null
+        ln -s "$SRC_FILE" "$DST_FILE"
     fi
 }
 
@@ -118,15 +132,15 @@ echo Installing dotfiles from $PRINT_PATH
 mkfolder ~/bin
 
 # Install scripts
-lnfile scripts/beep ~/bin/beep
+lnfile scripts/beep ~/bin/
 lnfile scripts/sdate ~/bin/stardate
-lnfile scripts/settitle ~/bin/settitle
-lnfile scripts/smartwd ~/bin/smartwd
+lnfile scripts/settitle ~/bin/
+lnfile scripts/smartwd ~/bin/
 
 # Don't bother installing the note script on a Mac, it doesn't work that well
 if [[ "$(uname)" != *"Darwin"* ]]
 then
-    lnfile scripts/note ~/bin/note
+    lnfile scripts/note ~/bin/
     lnfile scripts/note ~/bin/n
 fi
 
@@ -170,13 +184,13 @@ mkfolder ~/.vim/syntax
 lnfile vimrc ~/.vimrc
 
 # Install my plugins
-lnfile vim/plugin/long-lines.vim ~/.vim/plugin/long-lines.vim
-lnfile vim/plugin/match-brackets.vim ~/.vim/plugin/match-brackets.vim
+lnfile vim/plugin/long-lines.vim        ~/.vim/plugin/
+lnfile vim/plugin/match-brackets.vim    ~/.vim/plugin/
 
 # Install my filetype plugins
-lnfile vim/ftplugin/make.vim ~/.vim/ftplugin/make.vim
-lnfile vim/ftplugin/perl.vim ~/.vim/ftplugin/perl.vim
-lnfile vim/ftplugin/ruby.vim ~/.vim/ftplugin/ruby.vim
+lnfile vim/ftplugin/make.vim            ~/.vim/ftplugin/
+lnfile vim/ftplugin/perl.vim            ~/.vim/ftplugin/
+lnfile vim/ftplugin/ruby.vim            ~/.vim/ftplugin/
 
 # Install pathogen
 if [[ ! -f ~/.vim/autoload/pathogen.vim ]]
