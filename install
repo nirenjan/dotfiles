@@ -1,6 +1,12 @@
 #!/bin/bash
 
 #######################################################################
+# Default settings
+#######################################################################
+# Use git by default
+BUNDLE_TRANSPORT="git"
+
+#######################################################################
 # Helper functions
 #######################################################################
 
@@ -95,13 +101,16 @@ vim_update_bundle()
     # If the bundle already exists, update it (if possible)
     if [[ -d "$HOME/.vim/bundle/$BUNDLE" ]]
     then
+        # Don't update the bundle if BUNDLE_NO_UPDATE is set
         if [[ -d "$HOME/.vim/bundle/$BUNDLE/.git" ]]
         then
-            echo "Updating bundle $BUNDLE..."
-            pushd "$HOME/.vim/bundle/$BUNDLE" >/dev/null
-            git pull
-            popd >/dev/null
-            echo
+            if [[ -z $BUNDLE_NO_UPDATE ]]; then
+                echo "Updating bundle $BUNDLE..."
+                pushd "$HOME/.vim/bundle/$BUNDLE" >/dev/null
+                git pull
+                popd >/dev/null
+                echo
+            fi
         else
             echo "$BUNDLE is not a Git repository. Skipping update."
         fi
@@ -113,6 +122,85 @@ vim_update_bundle()
         echo
     fi
 }
+
+# Wrapper to vim_update_bundle
+# Let's you specify the bundle repo in a short form if it resides on GitHub
+# (and perhaps one of the repos in vim-scripts). You can still specify a full
+# URL if necessary. However, that will not allow you to dynamically choose a
+# transport layer at runtime
+Bundle()
+{
+    # Get the prefix ready
+    if [[ "$BUNDLE_TRANSPORT" == "ssh" ]]; then
+        # If the user specifies to use ssh as the transport
+        URL="git@github.com:"
+    elif [[ "$BUNDLE_TRANSPORT" == "https" ]]; then
+        # Use https as the transport
+        URL="https://github.com/"
+    elif [[ "$BUNDLE_TRANSPORT" == "git" ]]; then
+        # Use git as the transport
+        URL="git://github.com/"
+    else
+        echo "Invalid transport layer! Aborting!!!"
+        exit 1
+    fi
+
+    # Check the bundle format
+    if [[ $(echo $1 | grep "^[A-Za-z0-9-]\+\/[A-Za-z0-9._-]\+$") == $1 ]]; then
+        # Username/repo combo
+        URL="${URL}${1}.git"
+    elif [[ $(echo $1 | grep "^[A-Za-z0-9._-]\+$") == $1 ]]; then
+        # Bare repo name - must be from the vim-scripts user
+        URL="${URL}vim-scripts/${1}.git"
+    else
+        # I don't care, I'm specifying the URL directly
+        URL=$1
+    fi
+
+    vim_update_bundle "$URL"
+}
+
+#######################################################################
+# Verify command line switches
+#######################################################################
+while getopts "nht:" OPTION
+do
+    case "$OPTION" in 
+        n)
+            echo "Skipping bundle updates"
+            BUNDLE_NO_UPDATE=1
+            ;;
+
+        t)
+            echo "Using transport $OPTARG"
+            BUNDLE_TRANSPORT=$OPTARG
+            ;;
+
+        h)
+            echo '
+This script installs the dotfiles into various locations using symbolic
+links.
+
+Options:
+--------
+    -n              Will not update existing bundles, but will install new
+                    bundles.
+
+    -t<option>      Specify the transport for downloading bundles. Can be
+                    one of git, https or ssh. ssh transport requires you to
+                    have set up the necessary keys at GitHub
+
+    -h              Displays this help message
+'
+            exit 0
+            ;;
+
+        \?)
+            exit 1
+            break
+            ;;
+    esac
+done
 
 #######################################################################
 # Install dotfiles
@@ -195,25 +283,18 @@ lnfile vim/ftplugin/ruby.vim            ~/.vim/ftplugin/
 # Install pathogen
 if [[ ! -f ~/.vim/autoload/pathogen.vim ]]
 then
-    echo "Installing vim-pathogen"
-    curl -Sso ~/.vim/autoload/pathogen.vim \
-    https://raw.github.com/tpope/vim-pathogen/master/autoload/pathogen.vim
+    echo "Deleting legacy pathogen file. This is now maintained as a Bundle."
+    rm -f ~/.vim/autoload/pathogen.vim
 fi
 
 #######################################################################
 # Install/update Vim bundles
 #######################################################################
-# tmux config file syntax
-vim_update_bundle https://github.com/zaiste/tmux.vim.git
-
-# Solarized
-vim_update_bundle https://github.com/altercation/vim-colors-solarized.git
-
-# Vimwiki
-vim_update_bundle https://github.com/vim-scripts/vimwiki.git
-
-# snipMate
-vim_update_bundle https://github.com/msanders/snipmate.vim.git
+Bundle  tpope/vim-pathogen                  # pathogen
+Bundle  zaiste/tmux.vim                     # tmux config file syntax
+Bundle  altercation/vim-colors-solarized    # Solarized
+Bundle  vimwiki                             # Vimwiki
+Bundle  msanders/snipmate.vim               # snipMate
 
 #######################################################################
 # Install tmux & screen config files
