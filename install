@@ -280,13 +280,6 @@ lnfile vim/ftplugin/make.vim            ~/.vim/ftplugin/
 lnfile vim/ftplugin/perl.vim            ~/.vim/ftplugin/
 lnfile vim/ftplugin/ruby.vim            ~/.vim/ftplugin/
 
-# Install pathogen
-if [[ ! -f ~/.vim/autoload/pathogen.vim ]]
-then
-    echo "Deleting legacy pathogen file. This is now maintained as a Bundle."
-    rm -f ~/.vim/autoload/pathogen.vim
-fi
-
 #######################################################################
 # Install/update Vim bundles
 #######################################################################
