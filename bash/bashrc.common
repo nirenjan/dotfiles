@@ -30,6 +30,11 @@ if [[ -z $LS_COLORS && -f $HOME/.bashrc.lscolors ]]; then
     source $HOME/.bashrc.lscolors
 fi
 
+# Source the common aliases across systems
+if [[ -f $HOME/.bashrc.aliases ]]; then
+    source $HOME/.bashrc.aliases
+fi
+
 # Keep system specific aliases in a seperate file called .aliases
 # If .aliases exists it will envoked by the next line:
 if [ -f $HOME/.aliases ]; then
