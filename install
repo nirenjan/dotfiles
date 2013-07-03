@@ -279,6 +279,7 @@ lnfile vim/plugin/match-brackets.vim    ~/.vim/plugin/
 lnfile vim/ftplugin/make.vim            ~/.vim/ftplugin/
 lnfile vim/ftplugin/perl.vim            ~/.vim/ftplugin/
 lnfile vim/ftplugin/ruby.vim            ~/.vim/ftplugin/
+lnfile vim/ftplugin/changelog.vim       ~/.vim/ftplugin/
 
 #######################################################################
 # Install/update Vim bundles
