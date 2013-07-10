@@ -2,6 +2,7 @@
 alias ll='ls -l'
 
 # Git aliases
+alias g='git'
 alias tgp='time git pull'
 alias gf='git fetch'
 
@@ -9,3 +10,5 @@ alias gf='git fetch'
 # Use this to launch in 256-color mode
 alias tmux='TERM=screen-256color tmux -2'
 
+# Vim alias
+alias v='vim'
