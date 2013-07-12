@@ -285,6 +285,8 @@ lnfile vim/ftplugin/changelog.vim       ~/.vim/ftplugin/
 # Install/update Vim bundles
 #######################################################################
 Bundle  tpope/vim-pathogen                  # pathogen
+Bundle  tpope/vim-fugitive                  # A Git wrapper so awesome, it
+                                            # should be illegal!
 Bundle  zaiste/tmux.vim                     # tmux config file syntax
 Bundle  altercation/vim-colors-solarized    # Solarized
 Bundle  vimwiki                             # Vimwiki
