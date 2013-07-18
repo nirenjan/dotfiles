@@ -264,6 +264,7 @@ mkfolder ~/.vim
 mkfolder ~/.vim/autoload
 mkfolder ~/.vim/bundle
 mkfolder ~/.vim/colors
+mkfolder ~/.vim/ftdetect
 mkfolder ~/.vim/ftplugin
 mkfolder ~/.vim/plugin
 mkfolder ~/.vim/syntax
