@@ -275,6 +275,9 @@ lnfile vimrc ~/.vimrc
 lnfile vim/plugin/long-lines.vim        ~/.vim/plugin/
 lnfile vim/plugin/match-brackets.vim    ~/.vim/plugin/
 
+# Install my ftdetect plugins
+lnfile vim/ftdetect/swig.vim            ~/.vim/ftdetect/
+
 # Install my filetype plugins
 lnfile vim/ftplugin/make.vim            ~/.vim/ftplugin/
 lnfile vim/ftplugin/perl.vim            ~/.vim/ftplugin/
