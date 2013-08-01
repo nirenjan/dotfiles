@@ -278,12 +278,14 @@ lnfile vim/plugin/match-brackets.vim    ~/.vim/plugin/
 
 # Install my ftdetect plugins
 lnfile vim/ftdetect/swig.vim            ~/.vim/ftdetect/
+lnfile vim/ftdetect/markdown.vim        ~/.vim/ftdetect/
 
 # Install my filetype plugins
 lnfile vim/ftplugin/make.vim            ~/.vim/ftplugin/
 lnfile vim/ftplugin/perl.vim            ~/.vim/ftplugin/
 lnfile vim/ftplugin/ruby.vim            ~/.vim/ftplugin/
 lnfile vim/ftplugin/changelog.vim       ~/.vim/ftplugin/
+lnfile vim/ftplugin/markdown.vim        ~/.vim/ftplugin/
 
 #######################################################################
 # Install/update Vim bundles
