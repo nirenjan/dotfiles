@@ -1,0 +1,27 @@
+#!/usr/bin/env perl
+# Script to apply git configuration to global gitconfig
+
+my $section = 'unknown';
+my $variable;
+my $value;
+my $command;
+
+while(<>) {
+    chomp;
+    if (m/^\[(\w+)\]$/) {
+        $section = $1;
+        #print "Section: $section\n";
+    } elsif (m/^\[(\w+) +"(\w+)"\]/) {
+        $section = "$1.$2";
+        #print "Section: $section\n";
+    } elsif (m/(\w+) += +(.+)$/) {
+        $variable = $1;
+        $value = $2;
+
+        $value =~ s/"/\\"/g;
+        #print "\t$section.$variable = \"$value\"\n";
+        $command = "git config --global $section.$variable \"$value\"";
+        print "$command\n";
+        system($command);
+    }
+}
