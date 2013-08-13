@@ -1,0 +1,156 @@
+#!/usr/bin/env ruby
+# Script to automatically install Vim bundles to ~/.vim/bundle/
+# 
+# See vim/bundles for a sample file
+
+require 'getoptlong'
+
+# Shut up about warnings
+BUNDLE_ROOT = '/.vim/bundle/'
+
+def vim_bundle(bundle, tag=nil)
+  if $transport == 'ssh'
+    url = 'git@github.com:'
+  elsif $transport == 'https'
+    url = 'https://github.com/'
+  elsif $transport == 'git'
+    url = 'git://github.com/'
+  else
+    $stderr.puts "#{$an}: Unrecognized transport layer '#{transport}' (try --help)"
+    exit 1
+  end
+
+  if bundle =~ /^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/
+    url += bundle + '.git'
+  elsif bundle =~ /^[A-Za-z0-9._-]+$/
+    url += 'vim-scripts/' + bundle + '.git'
+  else
+    # We are using a service other than GitHub. Specifying the URL directly
+    url = bundle
+  end
+
+  bundle_name = bundle.sub(/^.*\//, '').sub(/\.git$/, '')
+
+  if $dry_run
+    puts "URL #{url} Bundle #{bundle_name} Tag #{tag.to_s}"
+    return
+  else
+    dir = ENV['HOME'] + BUNDLE_ROOT + bundle_name
+    pwd = Dir.pwd
+    $VERBOSE = nil
+    if File.directory?(dir)
+      if $update # Don't update if the no-update option was passed
+        if File.directory?(dir + '/.git')
+          puts "Updating bundle #{bundle_name}..."
+          Dir.chdir(dir)
+          `git fetch`
+          Dir.chdir(pwd)
+          puts
+        else
+          $stderr.puts "#{$an}: #{bundle_name} is not a Git repository."
+          return
+        end
+      else
+        $stderr.puts "#{$an}: Skipping update for #{bundle_name}"
+        return
+      end
+
+    else
+      # Directory doesn't exist, need to pull
+      puts "Installing bundle #{bundle_name}..."
+      Dir.chdir(ENV['HOME'] + BUNDLE_ROOT)
+      `git clone #{url} #{bundle_name}`
+      Dir.chdir(pwd)
+      puts
+    end
+
+    tag ||= 'origin/HEAD'
+    Dir.chdir(dir)
+    `git stash`
+    `git checkout #{tag}`
+    `git stash pop`
+    Dir.chdir(pwd)
+    $VERBOSE = false
+  end
+end
+
+opts = GetoptLong.new(
+  [ '--help', '-h', GetoptLong::NO_ARGUMENT ],
+  [ '--transport', '-t', GetoptLong::REQUIRED_ARGUMENT ],
+  [ '--no-update', GetoptLong::NO_ARGUMENT ],
+  [ '--dry-run', '-n', GetoptLong::NO_ARGUMENT ]
+)
+
+$an = $0.sub(/^.*\//, '')
+file = nil
+$transport = 'ssh'
+$update = true
+$dry_run = false
+
+opts.each do |opt, arg|
+  case opt
+    when '--help'
+      puts <<-EOF
+#{$an} manages vim bundles in ~/.vim/bundles
+Usage: #{$an} [OPTIONS] FILE
+
+Options:
+  --transport,    Use the specified transport layer to download git bundles.
+    -t <option>   Transport layer can be one of git, ssh or https.
+
+  --no-update     Do not update existing bundles, only download new ones.
+
+  --dry-run, -n   Just print what would be done, do not execute anything.
+
+  --help, -h      Display this help message
+
+The specified file must have the path to the bundle's repository on GitHub.
+If you are using any other service, you must specify the full URL, and the
+transport option will not be applied. You may optionally specify a tag or SHA
+to checkout, otherwise, it will checkout the HEAD version.
+
+EOF
+      exit 0
+
+    when '--transport'
+      unless arg == 'ssh' or arg == 'https' or arg == 'git'
+        $stderr.puts "#{$an}: Transport option must be one of git, https or ssh"
+        exit 1
+      end
+
+      $transport = arg
+
+    when '--no-update'
+      $update = false
+
+    when '--dry-run'
+      $dry_run = true
+  end
+end
+
+if ARGV.length != 1
+  $stderr.puts "#{$an}: Missing FILE argument (try --help)"
+  exit 1
+end
+
+file = ARGV.shift
+
+# Read the file contents
+unless File.file?(file) and File.readable?(file)
+  $stderr.puts "#{$an}: Unable to read file #{file}"
+  exit 1
+end
+
+File.open(file).each do |line|
+  # Chop off comments
+  line.sub!(/#.*$/, '')
+  # Strip leading and trailing spaces
+  line.sub!(/^\s*/, '')
+  line.sub!(/\s*$/, '')
+
+  args = line.split
+  bname = args[0]
+  tag = args[1]
+
+  vim_bundle(bname, tag) if (bname)
+end
