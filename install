@@ -165,7 +165,7 @@ Bundle()
 #######################################################################
 while getopts "nht:" OPTION
 do
-    case "$OPTION" in 
+    case "$OPTION" in
         n)
             echo "Skipping bundle updates"
             BUNDLE_NO_UPDATE=1
@@ -275,6 +275,7 @@ lnfile vimrc ~/.vimrc
 # Install my plugins
 lnfile vim/plugin/long-lines.vim        ~/.vim/plugin/
 lnfile vim/plugin/match-brackets.vim    ~/.vim/plugin/
+lnfile vim/plugin/airline-settings.vim  ~/.vim/plugin/
 
 # Install my ftdetect plugins
 lnfile vim/ftdetect/swig.vim            ~/.vim/ftdetect/
@@ -298,6 +299,7 @@ Bundle  altercation/vim-colors-solarized    # Solarized
 Bundle  vimwiki                             # Vimwiki
 Bundle  msanders/snipmate.vim               # snipMate
 Bundle  tomtom/tcomment_vim                 # tComment
+Bundle  bling/vim-airline                   # Airline is awesome!
 
 #######################################################################
 # Install tmux & screen config files
