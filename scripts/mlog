@@ -45,5 +45,6 @@ echo "$MLOG_HDR" >> $MLOG_LOG
 echo "$MLOG_TS"  >> $MLOG_LOG
 echo             >> $MLOG_LOG   # Empty line
 cat $MLOG_FILE >> $MLOG_LOG
-echo -e "\n----------------------------------------\n" >> $MLOG_LOG
+echo -en "\n----------------------------------------" >> $MLOG_LOG
+echo -e "----------------------------------------\n" >> $MLOG_LOG
 
