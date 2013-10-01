@@ -48,3 +48,5 @@ cat $MLOG_FILE >> $MLOG_LOG
 echo -en "\n----------------------------------------" >> $MLOG_LOG
 echo -e "----------------------------------------\n" >> $MLOG_LOG
 
+rm -f $MLOG_FILE
+
