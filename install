@@ -221,6 +221,7 @@ mkfolder ~/bin
 
 # Install scripts
 lnfile scripts/beep ~/bin/
+lnfile scripts/deploy ~/bin/
 lnfile scripts/mlog ~/bin/
 lnfile scripts/stardate ~/bin/
 lnfile scripts/settitle ~/bin/
