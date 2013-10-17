@@ -160,7 +160,11 @@ file()
         die 3 "File $file does not exist in version $ver of the repo $DEPLOY_GIT"
     else
         debug "Using file $file"
-        local cmd="cd $DEPLOY_GIT; git show $vercheck:$file > $DEPLOY_TGT/$rename;"
+        # Build the commands to extract the file and set the
+        # executable permissions bit in the deployed file.
+        local cmd="cd $DEPLOY_GIT"
+        cmd="$cmd; git show $vercheck:$file > $DEPLOY_TGT/$rename"
+        cmd="$cmd; chmod +x $DEPLOY_TGT/$rename;"
         DEPLOY_LST="$DEPLOY_LST $cmd"
     fi
 
