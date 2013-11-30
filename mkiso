@@ -1,5 +1,6 @@
 #!/bin/bash
 # Make an ISO/Joliet compatible image from a CDR image on OS X
+# Developed based on http://forums.macrumors.com/showthread.php?t=220740
 
 APP=$(echo $0 | sed 's#^.*/##')
 
