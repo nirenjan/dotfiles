@@ -275,9 +275,10 @@ mkfolder ~/.vim/syntax
 lnfile vimrc ~/.vimrc
 
 # Install my plugins
-lnfile vim/plugin/long-lines.vim        ~/.vim/plugin/
-lnfile vim/plugin/match-brackets.vim    ~/.vim/plugin/
-lnfile vim/plugin/airline-settings.vim  ~/.vim/plugin/
+lnfile vim/plugin/long-lines.vim            ~/.vim/plugin/
+lnfile vim/plugin/match-brackets.vim        ~/.vim/plugin/
+lnfile vim/plugin/airline-settings.vim      ~/.vim/plugin/
+lnfile vim/plugin/bufferline-settings.vim   ~/.vim/plugin/
 
 # Install my ftdetect plugins
 lnfile vim/ftdetect/swig.vim            ~/.vim/ftdetect/
@@ -302,6 +303,7 @@ Bundle  vimwiki                             # Vimwiki
 Bundle  msanders/snipmate.vim               # snipMate
 Bundle  tomtom/tcomment_vim                 # tComment
 Bundle  bling/vim-airline                   # Airline is awesome!
+Bundle  bling/vim-bufferline                # Display buffers in Airline
 
 #######################################################################
 # Install tmux & screen config files
