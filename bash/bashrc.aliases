@@ -8,7 +8,7 @@ alias gf='git fetch'
 
 # Tmux alias
 # Use this to launch in 256-color mode
-alias tmux='TERM=screen-256color tmux -2'
+alias tmux='TERM=screen-256color tmux -2 -u'
 
 # Vim alias
 alias v='vim'
