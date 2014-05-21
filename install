@@ -300,10 +300,11 @@ Bundle  tpope/vim-fugitive                  # A Git wrapper so awesome, it
 Bundle  zaiste/tmux.vim                     # tmux config file syntax
 Bundle  altercation/vim-colors-solarized    # Solarized
 Bundle  vimwiki                             # Vimwiki
-Bundle  msanders/snipmate.vim               # snipMate
 Bundle  tomtom/tcomment_vim                 # tComment
 Bundle  bling/vim-airline                   # Airline is awesome!
 Bundle  bling/vim-bufferline                # Display buffers in Airline
+Bundle  SirVer/ultisnips                    # UltiSnips
+Bundle  honza/vim-snippets                  # The actual snippets
 
 #######################################################################
 # Install tmux & screen config files
