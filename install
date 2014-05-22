@@ -280,6 +280,7 @@ lnfile vim/plugin/match-brackets.vim        ~/.vim/plugin/
 lnfile vim/plugin/airline-settings.vim      ~/.vim/plugin/
 lnfile vim/plugin/bufferline-settings.vim   ~/.vim/plugin/
 lnfile vim/plugin/ultisnips-settings.vim    ~/.vim/plugin/
+lnfile vim/plugin/nerdtree-settings.vim     ~/.vim/plugin/
 
 # Install my ftdetect plugins
 lnfile vim/ftdetect/swig.vim            ~/.vim/ftdetect/
