@@ -279,6 +279,7 @@ lnfile vim/plugin/long-lines.vim            ~/.vim/plugin/
 lnfile vim/plugin/match-brackets.vim        ~/.vim/plugin/
 lnfile vim/plugin/airline-settings.vim      ~/.vim/plugin/
 lnfile vim/plugin/bufferline-settings.vim   ~/.vim/plugin/
+lnfile vim/plugin/ultisnips-settings.vim    ~/.vim/plugin/
 
 # Install my ftdetect plugins
 lnfile vim/ftdetect/swig.vim            ~/.vim/ftdetect/
@@ -305,6 +306,7 @@ Bundle  bling/vim-airline                   # Airline is awesome!
 Bundle  bling/vim-bufferline                # Display buffers in Airline
 Bundle  SirVer/ultisnips                    # UltiSnips
 Bundle  honza/vim-snippets                  # The actual snippets
+Bundle  scrooloose/nerdtree                 # NERDTree
 
 #######################################################################
 # Install tmux & screen config files
