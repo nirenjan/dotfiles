@@ -94,88 +94,12 @@ lnfile()
     fi
 }
 
-# Install/update vim bundles
-vim_update_bundle()
-{
-    BUNDLE=$(echo $1 | sed 's:^.*/::' | sed 's:\.git$::')
-    # If the bundle already exists, update it (if possible)
-    if [[ -d "$HOME/.vim/bundle/$BUNDLE" ]]
-    then
-        # Don't update the bundle if BUNDLE_NO_UPDATE is set
-        if [[ -d "$HOME/.vim/bundle/$BUNDLE/.git" ]]
-        then
-            if [[ -z $BUNDLE_NO_UPDATE ]]; then
-                echo "Updating bundle $BUNDLE..."
-                pushd "$HOME/.vim/bundle/$BUNDLE" >/dev/null
-                git pull
-                popd >/dev/null
-                echo
-            fi
-        else
-            echo "$BUNDLE is not a Git repository. Skipping update."
-        fi
-    else
-        echo "Installing bundle $BUNDLE..."
-        pushd "$HOME/.vim/bundle/" >/dev/null
-        git clone $1
-        popd >/dev/null
-        echo
-    fi
-}
-
-# Wrapper to vim_update_bundle
-# Let's you specify the bundle repo in a short form if it resides on GitHub
-# (and perhaps one of the repos in vim-scripts). You can still specify a full
-# URL if necessary. However, that will not allow you to dynamically choose a
-# transport layer at runtime
-Bundle()
-{
-    # Get the prefix ready
-    if [[ "$BUNDLE_TRANSPORT" == "ssh" ]]; then
-        # If the user specifies to use ssh as the transport
-        URL="git@github.com:"
-    elif [[ "$BUNDLE_TRANSPORT" == "https" ]]; then
-        # Use https as the transport
-        URL="https://github.com/"
-    elif [[ "$BUNDLE_TRANSPORT" == "git" ]]; then
-        # Use git as the transport
-        URL="git://github.com/"
-    else
-        echo "Invalid transport layer! Aborting!!!"
-        exit 1
-    fi
-
-    # Check the bundle format
-    if [[ $(echo $1 | grep "^[A-Za-z0-9-]\+\/[A-Za-z0-9._-]\+$") == $1 ]]; then
-        # Username/repo combo
-        URL="${URL}${1}.git"
-    elif [[ $(echo $1 | grep "^[A-Za-z0-9._-]\+$") == $1 ]]; then
-        # Bare repo name - must be from the vim-scripts user
-        URL="${URL}vim-scripts/${1}.git"
-    else
-        # I don't care, I'm specifying the URL directly
-        URL=$1
-    fi
-
-    vim_update_bundle "$URL"
-}
-
 #######################################################################
 # Verify command line switches
 #######################################################################
-while getopts "nht:" OPTION
+while getopts "h" OPTION
 do
     case "$OPTION" in
-        n)
-            echo "Skipping bundle updates"
-            BUNDLE_NO_UPDATE=1
-            ;;
-
-        t)
-            echo "Using transport $OPTARG"
-            BUNDLE_TRANSPORT=$OPTARG
-            ;;
-
         h)
             echo '
 This script installs the dotfiles into various locations using symbolic
@@ -183,13 +107,6 @@ links.
 
 Options:
 --------
-    -n              Will not update existing bundles, but will install new
-                    bundles.
-
-    -t<option>      Specify the transport for downloading bundles. Can be
-                    one of git, https or ssh. ssh transport requires you to
-                    have set up the necessary keys at GitHub
-
     -h              Displays this help message
 '
             exit 0
@@ -269,51 +186,23 @@ fi
 
 # Create VIM folders
 mkfolder ~/.vim
-mkfolder ~/.vim/autoload
-mkfolder ~/.vim/bundle
-mkfolder ~/.vim/colors
-mkfolder ~/.vim/ftdetect
-mkfolder ~/.vim/ftplugin
-mkfolder ~/.vim/plugin
-mkfolder ~/.vim/syntax
 
-# Install vim files
+# Update the Git repository at ~/.vim, if it exists, clone otherwise
+pushd ~/.vim &>/dev/null
+if [[ -d .git ]]
+then
+    git pull
+else
+    git clone git@github.com:nirenjan/vimfiles.git .
+fi
+
+git submodule init
+git submodule update
+
+popd &>/dev/null
+
+# Install the basic vimrc file from this repo
 lnfile vimrc ~/.vimrc
-
-# Install my plugins
-lnfile vim/plugin/long-lines.vim            ~/.vim/plugin/
-lnfile vim/plugin/match-brackets.vim        ~/.vim/plugin/
-lnfile vim/plugin/airline-settings.vim      ~/.vim/plugin/
-lnfile vim/plugin/bufferline-settings.vim   ~/.vim/plugin/
-lnfile vim/plugin/ultisnips-settings.vim    ~/.vim/plugin/
-lnfile vim/plugin/nerdtree-settings.vim     ~/.vim/plugin/
-
-# Install my ftdetect plugins
-lnfile vim/ftdetect/swig.vim            ~/.vim/ftdetect/
-lnfile vim/ftdetect/markdown.vim        ~/.vim/ftdetect/
-
-# Install my filetype plugins
-lnfile vim/ftplugin/make.vim            ~/.vim/ftplugin/
-lnfile vim/ftplugin/perl.vim            ~/.vim/ftplugin/
-lnfile vim/ftplugin/ruby.vim            ~/.vim/ftplugin/
-lnfile vim/ftplugin/changelog.vim       ~/.vim/ftplugin/
-lnfile vim/ftplugin/markdown.vim        ~/.vim/ftplugin/
-
-#######################################################################
-# Install/update Vim bundles
-#######################################################################
-Bundle  tpope/vim-pathogen                  # pathogen
-Bundle  tpope/vim-fugitive                  # A Git wrapper so awesome, it
-                                            # should be illegal!
-Bundle  zaiste/tmux.vim                     # tmux config file syntax
-Bundle  altercation/vim-colors-solarized    # Solarized
-Bundle  vimwiki                             # Vimwiki
-Bundle  tomtom/tcomment_vim                 # tComment
-Bundle  bling/vim-airline                   # Airline is awesome!
-Bundle  bling/vim-bufferline                # Display buffers in Airline
-Bundle  SirVer/ultisnips                    # UltiSnips
-Bundle  honza/vim-snippets                  # The actual snippets
-Bundle  scrooloose/nerdtree                 # NERDTree
 
 #######################################################################
 # Install tmux & screen config files
