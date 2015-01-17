@@ -177,7 +177,7 @@ if [[ ! -e ~/.git_prompt.sh ]]
 then
     echo "Installing Git prompt functionality..."
     curl -Sso ~/.git_prompt.sh \
-    https://raw.github.com/git/git/master/contrib/completion/git-prompt.sh
+    https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh
 fi
 
 #######################################################################
