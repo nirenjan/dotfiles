@@ -7,8 +7,8 @@ alias gf='git fetch'
 
 # Tmux aliases
 # Use this to launch in 16-color mode
-alias tmux='TERM=xterm-16color tmux -2 -u'
+alias tmux='TERM=screen-256color-bce tmux -2 -u'
 # Attach to an existing tmux session
-alias work='TERM=xterm-16color tmux -2 -u attach -d'
+alias work='TERM=screen-256color-bce tmux -2 -u attach -d'
 # Trigger tmux to reopen the socket if it cannot attach
 alias kick='pkill -USR1 -u $USER tmux'
