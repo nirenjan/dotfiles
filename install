@@ -165,11 +165,11 @@ then
     echo "Installing gitconfig"
     cp -v gitconfig ~/.gitconfig
     echo -n "What is your default Git username? "
-    read $GIT_USER
+    read GIT_USER
     echo -n "What is your default Git e-mail address? "
-    read $GIT_EMAIL
-    git config --global user.name $GIT_USER
-    git config --global user.email $GIT_EMAIL
+    read GIT_EMAIL
+    git config --global user.name "$GIT_USER"
+    git config --global user.email "$GIT_EMAIL"
 fi
 
 # Install git prompt functions
