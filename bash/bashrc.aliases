@@ -2,13 +2,13 @@
 alias ll='ls -l'
 
 # Git aliases
-alias g='git'
 alias tgp='time git pull'
 alias gf='git fetch'
 
-# Tmux alias
-# Use this to launch in 256-color mode
-alias tmux='TERM=screen-256color tmux -2 -u'
-
-# Vim alias
-alias v='vim'
+# Tmux aliases
+# Use this to launch in 16-color mode
+alias tmux='TERM=xterm-16color tmux -2 -u'
+# Attach to an existing tmux session
+alias work='TERM=xterm-16color tmux -2 -u attach -d'
+# Trigger tmux to reopen the socket if it cannot attach
+alias kick='pkill -USR1 -u $USER tmux'
