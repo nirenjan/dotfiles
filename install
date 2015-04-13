@@ -144,18 +144,9 @@ mkfolder ~/bin
 
 # Install scripts
 lnfile scripts/beep ~/bin/
-lnfile scripts/deploy ~/bin/
-lnfile scripts/mlog ~/bin/
 lnfile scripts/stardate ~/bin/
 lnfile scripts/settitle ~/bin/
 lnfile scripts/smartwd ~/bin/
-
-# Don't bother installing the note script on a Mac, it doesn't work that well
-if [[ "$(uname)" != *"Darwin"* ]]
-then
-    lnfile scripts/note ~/bin/
-    lnfile scripts/note ~/bin/n
-fi
 
 #######################################################################
 # Install git configuration
