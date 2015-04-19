@@ -1,3 +1,9 @@
+# Add ls coloring
+# Don't bother setting LS_COLORS if it's alredy set
+if [[ -n "$LS_COLORS" ]]
+then
+    return
+fi
 
 if [[ "`uname`" == *"Darwin"* ]]
 then
@@ -28,7 +34,7 @@ then
     # 9. executable with setguid set
     # 10. directory writable by others, with sticky bit
     # 11. directory writable by others, without sticky bit
-    
+
     export LSCOLORS="ExGxbxdxCxegedabagacad"
 
     # Must use either CLICOLOR=1 or ls -G
@@ -51,4 +57,3 @@ then
         eval `gdircolors $DCFILE`
     fi
 fi
-
