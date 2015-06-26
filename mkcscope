@@ -26,8 +26,9 @@
 #   files ncurses *.[ch]
 
 APP=$(basename $0)
-VERSION='1.0.0'
+VERSION='1.0.1'
 MAKEFILE=/dev/null
+CONFFILE='.mkcscope.conf'
 
 declare -a TARGETS=()
 
@@ -41,6 +42,7 @@ usage()
     echo "      -h      Show this help screen"
     echo "      -l      List targets"
     echo "      -r      Rebuild cscope DB without regenerating files"
+    echo "      -c      Create a blank config file in the current directory"
     echo
 }
 
@@ -94,19 +96,55 @@ gen_targets()
 {
     set -f
 
-    if [[ -r "$PWD/.mkcscope.conf" ]]
+    if [[ -r "$PWD/$CONFFILE" ]]
     then
-        source "$PWD/.mkcscope.conf"
-    elif [[ -r "$HOME/.mkcscope.conf" ]]
+        source "$PWD/$CONFFILE"
+    elif [[ -r "$HOME/$CONFFILE" ]]
     then
-        source "$HOME/.mkcscope.conf"
+        source "$HOME/$CONFFILE"
     else
         echo "Unable to find a configuration file!" >&2
-        echo "Expect to find a .mkcscope.conf in either of:" >&2
+        echo "Expect to find a $CONFFILE in either of:" >&2
         echo "    $PWD" >&2
         echo "    $HOME" >&2
         exit 1
     fi
+}
+
+gen_config()
+{
+    (cat <<-EOM
+# Configuration for mkcscope
+# This is essentially a Bash script, using a structured language as follows:
+# target foo bar
+#   desc Description for foo
+#   files <relative path to directory> <file patterns>
+#
+# The above segment shows a sample target 'foo', which depends on a different
+# target 'bar'. The desc line is a description for use in the help, while the
+# files command specifies a directory relative to the current directory and
+# the file patterns to search for and add to the cscope file list. The script
+# expects to run from the base folder for the project workspace, and the
+# directories in the files command are relative to this base folder.
+
+# Sample configuration
+# target foo bar
+#     desc Target 'foo' depends on 'bar'
+#     # Files are in the folder foo relative to \$PWD
+#     files foo *.[ch] *.cpp
+#
+# target bar baz
+#     desc Target 'bar' depends on 'baz'
+#     # Multiple files
+#     files bar/folder1 *.s
+#     files bar/folder2 *.h
+#
+# target baz
+#     desc Target 'baz' does not depend on anything
+#     files baz/*.c
+
+EOM
+    ) > "$PWD/$CONFFILE"
 }
 
 cleanup()
@@ -119,7 +157,7 @@ trap cleanup "EXIT"
 gen_makefile
 gen_targets
 
-while getopts "hlr" OPTION
+while getopts "hlrc" OPTION
 do
     case $OPTION in
     h)
@@ -135,6 +173,12 @@ do
     r)
         echo "Rebuilding existing cscope database"
         gen_cscope
+        exit 0
+        ;;
+
+    c)
+        echo "Creating blank configuration"
+        gen_config
         exit 0
         ;;
 
