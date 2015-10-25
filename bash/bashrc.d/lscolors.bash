@@ -41,7 +41,7 @@ then
     export CLICOLOR=1
 fi
 
-DCFILE="$HOME/.dir_colors"
+DCFILE="$HOME/.dircolors"
 
 # We can presume we are on a GNU system, or at the very least,
 # a system which has the GNU coreutils installed

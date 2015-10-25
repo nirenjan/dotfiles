@@ -217,7 +217,7 @@ fi
 
 lnfile bash/bashrc.common ~/.bashrc.common
 lnfile bash/bashrc.d ~/.bashrc.d
-lnfile dircolors ~/.dir_colors
+lnfile dircolors ~/.dircolors
 
 if [[ $PRINT_INST == 1 ]]
 then
