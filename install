@@ -143,7 +143,6 @@ git submodule update
 mkfolder ~/bin
 
 # Install scripts
-lnfile scripts/beep ~/bin/
 lnfile scripts/stardate ~/bin/
 lnfile scripts/settitle ~/bin/
 lnfile scripts/smartwd ~/bin/
