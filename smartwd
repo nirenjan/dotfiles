@@ -1,11 +1,8 @@
-#!/usr/bin/env ruby
-# -*- ruby -*-
+#!/usr/bin/env python
 # Script to smartly chop off portions of the current working directory for
 # use in the shell prompt
 
-# Some of the methods don't work with Ruby versions older than 1.8.7
-min_release = "1.8.7 (2008-08-11)"
-ruby_release = "#{RUBY_VERSION} (#{RUBY_RELEASE_DATE})"
+import os
 
 # Constants used to decide when to start chopping
 DIRLIM = 5
@@ -13,57 +10,48 @@ DIR_L = 3
 DIR_R = 2
 PWDLEN = 14
 
-def backslash_w
-  homedir = ENV['HOME']
-  pwd = ENV['PWD']
-  print pwd.gsub(homedir, '~')
-end
+def smartwd():
+    username = os.environ['USER']
+    homedir = os.environ['HOME']
+    pwd = os.environ['PWD']
 
-def smartwd
-  username = ENV['USER']
-  homedir = ENV['HOME']
-  pwd = ENV['PWD']
+    path = pwd.split('/')
 
-  path = pwd.split('/')
+    # Ignore the root path
+    if len(path) == 1:
+        return pwd
 
-  # Ignore the root path
-  if (path.length > 0)
-    index = path.index(username)
-    if index
-      prefix = path.shift(index + 1)
+    try:
+        username_index = path.index(username)
+    except ValueError:
+        username_index = None
 
-      # We need to map additional paths in environments where the user
-      # may have more than one available folder in his/her name.
-      if prefix.join('/') == homedir
-        path.unshift('~')
-      else
-        # The first entry in the prefix array is the empty string
-        pre = prefix[1].split('').shift(4).join('') + '~'
-        path.unshift(pre)
-      end
-    else
-      # Replace the first two entries in the array with /<entry1>
-      # (because the first entry is always empty string)
-      prefix = path.shift(2).join('/')
-      path.unshift(prefix)
-    end
+    if username_index is not None:
+        prefix = '/'.join(path[:username_index+1])
 
-    # Check to make sure that both the DIRLIM and PWDLEN constraints
-    # are met before splitting
-    pwd = path.join('/')
-    if path.length > DIRLIM and pwd.length > PWDLEN
-      pwd_l = path.shift(DIR_L).join('/')
-      pwd_r = path.pop(DIR_R).join('/')
-      pwd = pwd_l + '/.../' + pwd_r
-    end
-  end
+        if prefix == homedir :
+            pre_path = '~'
+        else:
+            # The first element is always the empty string.
+            # We want the first 4 characters of the second element
+            pre_path = path[1][:4] + '~'
 
-  print pwd
-end
+        del path[:username_index]
+        path[0] = pre_path
 
-if (ruby_release < min_release)
-  backslash_w
-else
-  smartwd
-end
+        pwd = '/'.join(path)
+
+        # If we exceed the dirlimit and the length of the joined pwd,
+        # replace the pwd with left and right elements, with ellipses
+        # in between to simulate a long path.
+        if len(path) > DIRLIM and len(pwd) > PWDLEN:
+            newpwd = '/'.join(path[:DIR_L] + ['...'] + path[-DIR_R:])
+
+            if len(newpwd) < len(pwd):
+                pwd = newpwd
+
+    return pwd
+
+if __name__ == "__main__":
+    print smartwd()
 
