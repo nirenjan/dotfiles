@@ -7,10 +7,10 @@ alias tgp='time git pull'
 alias gf='git fetch'
 
 # Tmux aliases
-# Use this to launch in 256-color mode
-alias tmux='TERM=screen-256color-bce tmux -2 -u'
 # Attach to an existing tmux session
 alias work='TERM=screen-256color-bce tmux -2 -u attach -d'
+# Use this to launch in 256-color mode
+alias tmux='TERM=screen-256color-bce tmux -2 -u'
 # Trigger tmux to reopen the socket if it cannot attach
 alias kick='pkill -USR1 -u $USER tmux'
 
