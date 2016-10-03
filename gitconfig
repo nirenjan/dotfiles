@@ -36,4 +36,5 @@
 	rb = rebase master
 	co = checkout
 	ci = commit
+	st = status --short --branch
 
