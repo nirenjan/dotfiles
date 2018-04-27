@@ -37,4 +37,11 @@
 	co = checkout
 	ci = commit
 	st = status --short --branch
-
+[url "git://github.com/"]
+	insteadOf = gh:
+[url "git@github.com:"]
+	pushInsteadOf = gh:
+[url "git://github.com/nirenjan/"]
+	insteadOf = my:
+[url "git@github.com:nirenjan/"]
+	pushInsteadOf = my:
