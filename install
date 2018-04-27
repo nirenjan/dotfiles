@@ -130,24 +130,6 @@ PRINT_PATH=$(echo $DF_PATH | sed "s:^$HOME:~:")
 echo Installing dotfiles from $PRINT_PATH
 
 #######################################################################
-# Initialize submodules
-#######################################################################
-git submodule init
-git submodule update
-
-#######################################################################
-# Install scripts
-#######################################################################
-
-# Create ~/bin folder
-mkfolder ~/bin
-
-# Install scripts
-lnfile scripts/stardate ~/bin/
-lnfile scripts/settitle ~/bin/
-lnfile scripts/smartwd ~/bin/
-
-#######################################################################
 # Install git configuration
 #######################################################################
 if [[ ! -e ~/.gitconfig ]]
@@ -169,6 +151,23 @@ then
     curl -Sso ~/.git_prompt.sh \
     https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh
 fi
+
+#######################################################################
+# Initialize submodules
+#######################################################################
+git submodule update --init --recursive
+
+#######################################################################
+# Install scripts
+#######################################################################
+
+# Create ~/bin folder
+mkfolder ~/bin
+
+# Install scripts
+lnfile scripts/stardate ~/bin/
+lnfile scripts/settitle ~/bin/
+lnfile scripts/smartwd ~/bin/
 
 #######################################################################
 # Install vimrc & plugins
