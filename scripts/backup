@@ -1,0 +1,202 @@
+#!/bin/bash
+# Script to backup folders to either a tarball or a Git repository
+# Script expects to run at most on a daily basis. Any faster, and you risk
+# overwriting a previous backup.
+
+# Default environment variables used
+BACKUP_METHOD=git
+BACKUP_TS=$(date +%F)
+BACKUP_DEBUG=false
+BACKUP_SRC=''
+BACKUP_DST=''
+BACKUP_DB=''
+
+APP=$(basename $0)
+
+# Usage function will display the usage
+usage()
+{
+    local backup=$APP
+    local exit_code=$1
+
+    [[ -z $exit_code ]] && exit_code=0
+
+    echo "Usage: $backup [options] <source path>"
+    echo "Options:"
+    echo "    -s tar    Save to a tarball, format is backup-%Y-%m-%d.tar.gz"
+    echo "              This is the default."
+    echo "    -s git    Save to a git repository and tag the commit"
+    echo
+    echo "    -t <dst>  Specify the path to save the backup to. If omitted,"
+    echo "              it defaults to ~/backups/\$(basename <src>)"
+    echo
+    echo "    -d <db>   Specify a MySQL database to backup in addition to"
+    echo "              the files in the source path. This requires you to"
+    echo "              save the MySQL root password in ~/.my.cnf"
+    echo
+    echo "    -h        Display this help message"
+
+    exit $exit_code
+}
+
+# Die function will print the error message to stderr and abort the script
+die()
+{
+    local exit_code=$1
+    local backup=$APP
+    shift
+
+    for msg in "$@"
+    do
+        echo -e "$backup: $msg" >&2
+    done
+
+    exit $exit_code
+}
+
+# Sanity check
+backup_sanity()
+{
+    if [[ -z $BACKUP_SRC ]]
+    then
+        die 1 "Need to specify a source"
+    fi
+
+    # Run basic sanity checks on env variables
+    if [[ -z $BACKUP_DST ]]
+    then
+        BACKUP_DST=$HOME/backups/$(basename $BACKUP_SRC)
+    fi
+
+    mkdir -p $BACKUP_DST
+    if [[ $? != 0 ]]
+    then
+        die 2 "Error creating backup folder"
+    fi
+}
+
+# Retrieve data using rsync
+backup_data()
+{
+    # Don't rsync if we are using tar as the backup method
+    if [[ "$BACKUP_METHOD" != "tar" ]]
+    then
+        rsync -a $BACKUP_SRC $BACKUP_DST
+
+        if [[ $? != 0 ]]
+        then
+            die 2 "Error syncing data from source $BACKUP_SRC"
+        fi
+    fi
+}
+
+# Backup the database
+backup_db()
+{
+    if [[ ! -z $BACKUP_DB ]]
+    then
+        # Dump using mysqldump
+        mysqldump -u root $BACKUP_DB >$BACKUP_DST/$BACKUP_DB.sql 2>/dev/null
+
+        if [[ $? != 0 ]]
+        then
+            die 2 "Error dumping database $BACKUP_DB"
+        fi
+    fi
+}
+
+# Save the files to git repo or tarball
+backup_save()
+{
+    if [[ "$BACKUP_METHOD" == "tar" ]]
+    then
+        cd $BACKUP_SRC
+        local daily=$BACKUP_DST/backup-daily-$BACKUP_TS.tar.gz
+        tar czf $daily .
+
+        # Weekly tarballs every Sunday
+        if [[ $(date +%w) == "0" ]]
+        then
+            local weekly=$BACKUP_DST/backup-weekly-$(date +%Y-%U).tar.gz
+            ln $daily $weekly
+        fi
+
+        # Monthly tarballs on the first of every month
+        if [[ $(date +%-d) == "1" ]]
+        then
+            local monthly=$BACKUP_DST/backup-monthly-$(date +%Y-%m).tar.gz
+            ln $daily $monthly
+        fi
+    else
+        cd $BACKUP_DST
+        git init -q
+        git config core.safecrlf false
+        git add .
+        git commit -m "Backup of $BACKUP_SRC on $BACKUP_TS"
+        git tag -am "Daily ($BACKUP_TS) backup of $BACKUP_SRC" daily-$BACKUP_TS
+
+        # Weekly tags every Sunday
+        if [[ $(date +%w) == "0" ]]
+        then
+            local week=$(date +%Y-%U)
+            git tag -am "Weekly ($week) backup of $BACKUP_SRC" weekly-$week
+        fi
+
+        # Monthly tags on the first of every month
+        if [[ $(date +%-d) == "1" ]]
+        then
+            local month=$(date +%Y-%m)
+            git tag -am "Monthly ($month) backup of $BACKUP_SRC" monthly-$month
+        fi
+    fi
+}
+
+while getopts :hs:t:d: OPTION
+do
+    case $OPTION in
+    h)
+        # Help
+        usage 0
+        ;;
+
+    s)
+        # Backup method
+        if [[ "$OPTARG" == "git" || "$OPTARG" == "tar" ]]
+        then
+            BACKUP_METHOD=$OPTARG
+        else
+            die 1 "Backup method must be one of git or tar"
+        fi
+        ;;
+    t)
+        # Target folder
+        BACKUP_DST=$OPTARG
+        ;;
+
+    d)
+        # Database
+        BACKUP_DB=$OPTARG
+        ;;
+
+    :)
+        # Missing required argument
+        die 1 "Missing argument for option -$OPTARG"
+        ;;
+
+    \?)
+        # Invalid option
+        die 1 "Invalid option: -$OPTARG"
+        ;;
+
+    esac
+done
+
+# Shift away the options
+shift $(($OPTIND - 1))
+
+BACKUP_SRC=$1
+backup_sanity
+backup_data
+backup_db
+backup_save
+

@@ -1,0 +1,72 @@
+#!/bin/bash
+# Make an ISO/Joliet compatible image from a CDR image on OS X
+# Developed based on http://forums.macrumors.com/showthread.php?t=220740
+
+APP=$(echo $0 | sed 's#^.*/##')
+
+usage()
+{
+    echo "
+$APP converts an image into ISO/Joliet compatible format suitable for
+burning onto a CD/DVD and having it cross-compatible with Win32/OSX/*NIX
+
+Usage: $APP [-o <output file>] <input file>
+"
+}
+
+while getopts :ho: OPTION
+do
+    case $OPTION in
+    h)
+        # Help
+        usage
+        exit 0
+        ;;
+
+    o)
+        # Output file
+        OUTFILE=$OPTARG
+        ;;
+
+    :)
+        # Missing required argument
+        echo "$APP: Missing argument for option -$OPTARG" >&2
+        exit 1
+        ;;
+
+    \?)
+        # Invalid option
+        echo "$APP: Invalid option: -$OPTARG" >&2
+        exit 1
+        ;;
+    esac
+done
+
+# Shift away the options
+shift $(($OPTIND - 1))
+
+INFILE=$1
+
+if [[ -z $INFILE ]]
+then
+    usage
+    exit 1
+fi
+
+if [[ ! -r $INFILE ]]
+then
+    echo "$APP: Unable to read input file $INFILE" >&2
+    exit 1
+fi
+
+if [[ -z $OUTFILE ]]
+then
+    OUTFILE=$(echo $INFILE | sed -E 's#\.[^\.]+$#\.iso#')
+fi
+
+echo "Input file = $INFILE"
+echo "Output file = $OUTFILE"
+
+hdiutil makehybrid -iso -joliet -o "$OUTFILE" "$INFILE"
+
+exit $?

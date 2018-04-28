@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# Support script to find the commit from which the given branch was spawned.
+# Takes one or two arguments, the first argument is mandatory and specifies
+# the child branch while the second argument is optional and specifies the
+# parent branch. If omitted, the parent branch defaults to 'master'
+
+CHILD=$1
+PARENT=$2
+
+USAGE="Usage: $0 <child branch> <parent branch>"
+
+if [ "$CHILD" == "" ]
+then
+    echo $USAGE
+    exit
+fi
+
+if [ "$PARENT" == "" ]
+then
+    PARENT="master"
+fi
+
+PCOMMIT=`diff -u <(git rev-list --first-parent $CHILD) \
+    <(git rev-list --first-parent $PARENT) | sed -ne 's/^ //p' | head -1`
+
+git show --pretty="%H %an | %s" $PCOMMIT | head -1
+

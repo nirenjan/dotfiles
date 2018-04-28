@@ -1,0 +1,195 @@
+#!/bin/bash
+# Script to copy files from a Git repository to a destination
+# Reads deployment instructions from a file and acts accordingly
+#
+# File Format
+# ===========
+#
+# Comments begin with a # character and terminate at the end of the line.
+#
+# The keyword 'repo' specifies the path to the repository. The repository must
+# be accessible locally without having to resort to ssh, https or git protocols.
+# Usage: repo <path to repo>
+#
+# The keyword 'target' specifies the location to which to deploy. If omitted, it
+# defaults to the current folder. Folders can be specified relative to the
+# current folder, relative to the home directory, or relative to the root, using
+# ./ or ../, ~/ and / as prefixes respectively. The parameter must be a valid
+# directory.
+# Usage: target <path to install to>
+#
+# The keyword 'file' specifies the file location relative to the root of the
+# Git repository, along with the version to install and an optional rename
+# argument which allows you to rename the destination file. If the version is
+# omitted, it defaults to HEAD. If the rename-to parameter is omitted, the
+# filename is the same as the name within the repository.
+# Usage: file <path to file within repo> [version [rename-to]]
+
+# Default environment variables used
+DEPLOY_GIT=''
+DEPLOY_TGT=$(pwd)
+DEPLOY_SRC=''
+DEPLOY_LST=''
+DEPLOY_DEBUG=false
+
+# Usage function will display the usage
+usage()
+{
+    local deploy=$(basename $0)
+    echo "Usage: $deploy <deploy-file1> <deploy-file2> ..."
+    exit 0
+}
+
+# Die function will print the error message to stderr and abort the script
+die()
+{
+    local exit_code=$1
+    local deploy=$(basename $0)
+    shift
+
+    for msg in "$@"
+    do
+        echo -e "$deploy: $msg" >&2
+    done
+
+    if [[ $exit_code != 128 && $exit_code != 0 ]]
+    then
+        echo -e "\tError in file $DEPLOY_SRC line ${BASH_LINENO[1]}" >&2
+    fi
+
+    exit $exit_code
+}
+
+# Debug function will display all data, but only if debugs are enabled
+debug()
+{
+    $DEPLOY_DEBUG && echo "$@"
+}
+
+# Repo function checks if it is a valid Git repo and sets the DEPLOY_GIT
+repo()
+{
+    if [[ $# != 1 ]]
+    then
+        die 4 "Invalid usage of repo command" "Usage: repo <path to Git repo>"
+    fi
+
+    if [[ -d "$1" ]]
+    then
+        cd "$1"
+        local gtl=$(git rev-parse --show-toplevel 2>/dev/null)
+
+        if [[ -z $gtl ]]
+        then
+            die 3 "Path $1 is not a valid Git repository!"
+        else
+            debug "Using repository $gtl"
+            DEPLOY_GIT="$gtl"
+        fi
+    else
+        die 1 "Path $1 does not exist!"
+    fi
+}
+
+# Target function checks if it is a valid directory and sets the DEPLOY_TGT
+target()
+{
+    if [[ $# != 1 ]]
+    then
+        die 4 "Invalid usage of target command" "Usage: target <path>"
+    fi
+
+    if [[ -d "$1" ]]
+    then
+        debug "Target folder $1"
+        DEPLOY_TGT="$1"
+    else
+        die 1 "Path $1 does not exist!"
+    fi
+}
+
+# File command selects a file to deploy
+file()
+{
+    if [[ $# == 0 || $# > 3 ]]
+    then
+        die 4 "Invalid usage of file command" \
+              "Usage: file <path from root of repo> [<version> [<rename-to>] ]"
+    fi
+
+    if [[ -z $DEPLOY_GIT ]]
+    then
+        die 2 "Must specify repo before file!"
+    fi
+
+    if [[ -z $DEPLOY_TGT ]]
+    then
+        die 2 "Must specify target before file!"
+    fi
+
+    local file=$1
+    local ver=$2
+    local rename=$3
+
+    debug "file $@"
+
+    # Sanity check on ver
+    [[ -z $ver ]] && ver=HEAD
+
+    # Sanity check on rename
+    [[ -z $rename ]] && rename=$(basename $file)
+
+    cd $DEPLOY_GIT
+
+    # Check to make sure that version is a sane version
+    git rev-parse $ver &>/dev/null
+
+    if [[ $? != 0 ]]
+    then
+        die 3 "Version $ver does not exist in the repository $DEPLOY_GIT"
+    fi
+
+    local vercheck=$(git rev-parse $ver 2>/dev/null)
+    debug "Using version $vercheck"
+
+    # Check to make sure that the file is valid in the specified version
+    git show $vercheck:$file &>/dev/null
+
+    if [[ $? != 0 ]]
+    then
+        die 3 "File $file does not exist in version $ver of the repo $DEPLOY_GIT"
+    else
+        debug "Using file $file"
+        # Build the commands to extract the file and set the
+        # executable permissions bit in the deployed file.
+        local cmd="cd $DEPLOY_GIT"
+        cmd="$cmd; git show $vercheck:$file > $DEPLOY_TGT/$rename"
+        cmd="$cmd; chmod +x $DEPLOY_TGT/$rename;"
+        DEPLOY_LST="$DEPLOY_LST $cmd"
+    fi
+
+}
+
+if [[ $# == 0 ]]
+then
+    usage
+else
+    for i in "$@"
+    do
+        if [[ -f $i && -r $i ]]
+        then
+            DEPLOY_SRC=$i
+            source $i
+        else
+            die 128 "Deploy file $i does not exist or is not readable!"
+        fi
+    done
+fi
+
+if [[ ! -z $DEPLOY_LST ]]
+then
+    eval $DEPLOY_LST
+else
+    die 0 "No files to deploy!"
+fi
+

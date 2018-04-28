@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+# Script to smartly chop off portions of the current working directory for
+# use in the shell prompt
+
+import os
+
+# Constants used to decide when to start chopping
+DIRLIM = 5
+DIR_L = 3
+DIR_R = 2
+PWDLEN = 14
+
+def smartwd():
+    username = os.environ['USER']
+    homedir = os.environ['HOME']
+    pwd = os.environ['PWD']
+
+    path = pwd.split('/')
+
+    # Ignore the root path
+    if len(path) == 1:
+        return pwd
+
+    try:
+        username_index = path.index(username)
+    except ValueError:
+        username_index = None
+
+    if username_index is not None:
+        prefix = '/'.join(path[:username_index+1])
+
+        if prefix == homedir :
+            pre_path = '~'
+        else:
+            # The first element is always the empty string.
+            # We want the first 4 characters of the second element
+            pre_path = path[1][:4] + '~'
+
+        del path[:username_index]
+        path[0] = pre_path
+
+        pwd = '/'.join(path)
+
+        # If we exceed the dirlimit and the length of the joined pwd,
+        # replace the pwd with left and right elements, with ellipses
+        # in between to simulate a long path.
+        if len(path) > DIRLIM and len(pwd) > PWDLEN:
+            newpwd = '/'.join(path[:DIR_L] + ['...'] + path[-DIR_R:])
+
+            if len(newpwd) < len(pwd):
+                pwd = newpwd
+
+    return pwd
+
+if __name__ == "__main__":
+    print smartwd()
+

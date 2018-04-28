@@ -1,0 +1,5 @@
+#!/bin/bash
+
+len=$1
+[[ "$len" == "" ]] && len=16
+LC_CTYPE=C tr -dc "[:alnum:]" < /dev/urandom | head -c ${len} | xargs

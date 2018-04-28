@@ -1,0 +1,207 @@
+#!/bin/bash
+# Script to create cscope.out file for any workspace
+# Script expects to see a .mkcscope.conf file in either the current working
+# directory or in your $HOME. The format of the file is as follows:
+#
+# This is essentially a Bash script, using a structured language as follows:
+# target foo bar
+#   desc Description for foo
+#   files <relative path to directory> <file patterns>
+#
+# The above segment shows a sample target 'foo', which depends on a different
+# target 'bar'. The desc line is a description for use in the help, while the
+# files command specifies a directory relative to the current directory and
+# the file patterns to search for and add to the cscope file list. The script
+# expects to run from the base folder for the project workspace, and the
+# directories in the files command are relative to this base folder.
+#
+# Example:
+# --------
+# target tmux ncurses
+#   desc tmux Source code
+#   files tmux *.[ch] *.[cpp]
+#
+# target ncurses
+#   desc ncurses source code
+#   files ncurses *.[ch]
+
+APP=$(basename $0)
+VERSION='1.0.1'
+MAKEFILE=/dev/null
+CONFFILE='.mkcscope.conf'
+
+declare -a TARGETS=()
+
+usage()
+{
+    echo "$APP v$VERSION"
+    echo "Usage: $APP [options] <targets>"
+    echo
+    echo "Options:"
+    echo "--------"
+    echo "      -h      Show this help screen"
+    echo "      -l      List targets"
+    echo "      -r      Rebuild cscope DB without regenerating files"
+    echo "      -c      Create a blank config file in the current directory"
+    echo
+}
+
+files()
+{
+    local dir=$1
+    shift
+    for patt in "$@"
+    do
+        echo -e "\t@find $PWD/$dir -name \"$patt\" -print >> $CSCOPE_FILES" >> $MAKEFILE
+    done
+}
+
+desc()
+{
+    echo -e "\t@echo $@" >> $MAKEFILE
+}
+
+target()
+{
+    local tgt=$1
+    shift
+
+    echo "$tgt: $@" >> $MAKEFILE
+
+    TARGETS=(${TARGETS[@]} $tgt)
+}
+
+list_targets()
+{
+    echo "Supported targets:"
+    echo "------------------"
+    for tgt in ${TARGETS[@]}
+    do
+        echo " - $tgt"
+    done
+}
+
+gen_makefile()
+{
+    MAKEFILE=$(mktemp --tmpdir cscope-$USER-XXXXXXXX.mk)
+    CSCOPE_FILES=$PWD/cscope.files
+}
+
+gen_cscope()
+{
+    cscope -bqv
+}
+
+gen_targets()
+{
+    set -f
+
+    if [[ -r "$PWD/$CONFFILE" ]]
+    then
+        source "$PWD/$CONFFILE"
+    elif [[ -r "$HOME/$CONFFILE" ]]
+    then
+        source "$HOME/$CONFFILE"
+    else
+        echo "Unable to find a configuration file!" >&2
+        echo "Expect to find a $CONFFILE in either of:" >&2
+        echo "    $PWD" >&2
+        echo "    $HOME" >&2
+        exit 1
+    fi
+}
+
+gen_config()
+{
+    (cat <<-EOM
+# Configuration for mkcscope
+# This is essentially a Bash script, using a structured language as follows:
+# target foo bar
+#   desc Description for foo
+#   files <relative path to directory> <file patterns>
+#
+# The above segment shows a sample target 'foo', which depends on a different
+# target 'bar'. The desc line is a description for use in the help, while the
+# files command specifies a directory relative to the current directory and
+# the file patterns to search for and add to the cscope file list. The script
+# expects to run from the base folder for the project workspace, and the
+# directories in the files command are relative to this base folder.
+
+# Sample configuration
+# target foo bar
+#     desc Target 'foo' depends on 'bar'
+#     # Files are in the folder foo relative to \$PWD
+#     files foo *.[ch] *.cpp
+#
+# target bar baz
+#     desc Target 'bar' depends on 'baz'
+#     # Multiple files
+#     files bar/folder1 *.s
+#     files bar/folder2 *.h
+#
+# target baz
+#     desc Target 'baz' does not depend on anything
+#     files baz/*.c
+
+EOM
+    ) > "$PWD/$CONFFILE"
+}
+
+cleanup()
+{
+    rm $MAKEFILE
+}
+
+trap cleanup "EXIT"
+
+gen_makefile
+gen_targets
+
+while getopts "hlrc" OPTION
+do
+    case $OPTION in
+    h)
+        usage
+        exit 0
+        ;;
+
+    l)
+        list_targets
+        exit 0
+        ;;
+
+    r)
+        echo "Rebuilding existing cscope database"
+        gen_cscope
+        exit 0
+        ;;
+
+    c)
+        echo "Creating blank configuration"
+        gen_config
+        exit 0
+        ;;
+
+    \?)
+        echo "Invalid option -$OPTARG"
+        exit 1
+        ;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+if [[ -n "$1" ]]
+then
+    rm -f $CSCOPE_FILES
+    make -f $MAKEFILE "$@"
+
+    if [[ ! -s $CSCOPE_FILES ]]
+    then
+        echo "$APP: Must specify targets to generate file list!" >&2
+        exit 1
+    fi
+
+    gen_cscope
+fi
+
