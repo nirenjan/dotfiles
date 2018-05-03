@@ -1,0 +1,42 @@
+#!/bin/bash -x
+#
+# Support script to simplify cloning from GitHub
+
+MY_GH_UID=nirenjan
+
+USAGE="Usage: git ${0#*/git-} [<owner>/]<repo>[.git]"
+
+if [[ -z "$1" ]]
+then
+    echo "$USAGE" >&2
+    exit 1
+fi
+
+# Extract OWNER
+OWNER=
+if [[ "$1" == */* ]]
+then
+    OWNER=${1%/*}
+fi
+
+REPO=${1%.git}
+REPO=${REPO##*/}
+
+if [[ -z "$OWNER" ]]
+then
+    URL="my:"
+elif [[ "$OWNER" == "$MY_GH_UID" ]]
+then
+    URL="my:"
+else
+    URL="gh:$OWNER/"
+fi
+
+if [[ -z "$REPO" ]]
+then
+    echo "$USAGE" >&2
+    exit 1
+fi
+
+shift 
+git clone $URL$REPO.git "$@"
