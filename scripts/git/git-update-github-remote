@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# Support script to update the origin github remote to use gh: or my:
+# If the remote is of the form '.*github.com.nirenjan/foo\.git', change
+# the remote to my:foo.git
+# If the remote is of the form '.*github.com.foo/bar.git', change
+# the remote to gh:foo/bar.git
+
+MY_GH_UID=nirenjan
+
+USAGE="Usage: $0 <path to cloned repository>"
+
+REPOPATH="$1"
+
+if [[ -z "$REPOPATH" ]]
+then
+    REPOPATH=$(git rev-parse --show-toplevel)
+fi    
+
+if [[ ! -r "$REPOPATH/.git/config" ]]
+then
+    echo "ERROR: Not a git repository '$1'" >&2
+    exit 1
+fi
+
+sed \
+    -e "/url *= */s# [^ ]*github.com.$MY_GH_UID/\(.*\)\.git# my:\1.git#" \
+    -e "/url *= */s# [^ ]*github.com.\(.*\)/\(.*\)\.git# gh:\1/\2.git#" \
+    -i "$REPOPATH/.git/config"
+
+cd $REPOPATH
+git remote -v
