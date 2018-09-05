@@ -132,6 +132,12 @@ echo Installing dotfiles from $PRINT_PATH
 #######################################################################
 # Install git configuration
 #######################################################################
+if [[ ! -e ~/.git-commit-template ]]
+then
+    echo "Installing Git commit template"
+    cp -v gitcommit ~/.git-commit-template
+fi
+
 if [[ ! -e ~/.gitconfig ]]
 then
     echo "Installing gitconfig"
@@ -142,6 +148,9 @@ then
     read GIT_EMAIL
     git config --global user.name "$GIT_USER"
     git config --global user.email "$GIT_EMAIL"
+else
+    echo "Applying gitconfig"
+    ./scripts/applygitconfig gitconfig
 fi
 
 # Install git prompt functions
@@ -177,7 +186,7 @@ if [[ -d .git ]]
 then
     git pull
 else
-    git clone git@github.com:nirenjan/vimfiles.git .
+    git clone my:vimfiles.git .
 fi
 
 git submodule init

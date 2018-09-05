@@ -37,6 +37,8 @@
 	co = checkout
 	ci = commit
 	st = status --short --branch
+[commit]
+	template = ~/.git-commit-template
 [url "git://github.com/"]
 	insteadOf = gh:
 [url "git@github.com:"]
