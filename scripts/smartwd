@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-# Script to smartly chop off portions of the current working directory for
-# use in the shell prompt
+"""Script to smartly chop off portions of the current working directory for
+use in the shell prompt"""
 
+from __future__ import print_function
 import os
 
 # Constants used to decide when to start chopping
@@ -11,6 +12,7 @@ DIR_R = 2
 PWDLEN = 14
 
 def smartwd():
+    """Meat of the smartwd script"""
     username = os.environ['USER']
     homedir = os.environ['HOME']
     pwd = os.environ['PWD']
@@ -29,7 +31,7 @@ def smartwd():
     if username_index is not None:
         prefix = '/'.join(path[:username_index+1])
 
-        if prefix == homedir :
+        if prefix == homedir:
             pre_path = '~'
         else:
             # The first element is always the empty string.
@@ -53,5 +55,5 @@ def smartwd():
     return pwd
 
 if __name__ == "__main__":
-    print smartwd()
+    print(smartwd())
 
