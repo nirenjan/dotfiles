@@ -227,3 +227,14 @@ then
     echo "    source ~/.bashrc.common"
 fi
 
+#######################################################################
+# Install zsh files
+#######################################################################
+lnfile zshrc ~/.zshrc
+mkfolder ~/.zshrc.d
+mkfolder ~/.zshrc.d/functions
+for plugin in zsh/*.zsh
+do
+    lnfile $plugin ~/.zshrc.d/
+done
+
