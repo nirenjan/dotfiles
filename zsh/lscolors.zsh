@@ -39,6 +39,9 @@ then
 
     # Must use either CLICOLOR=1 or ls -G
     export CLICOLOR=1
+else
+    # On Unix, add an alias to display the color always
+    alias ls='ls --color=auto'
 fi
 
 DCFILE="$HOME/.dircolors"
