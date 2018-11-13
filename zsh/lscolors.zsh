@@ -1,10 +1,4 @@
 # Add ls coloring
-# Don't bother setting LS_COLORS if it's alredy set
-if [[ -n "$LS_COLORS" ]]
-then
-    return
-fi
-
 if [[ "`uname`" == *"Darwin"* ]]
 then
     # OS X uses BSD ls which is relatively restricted compared to
