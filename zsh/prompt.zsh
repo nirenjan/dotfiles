@@ -19,12 +19,19 @@ function prompt_header
     # Build the prompt prefix
     local prefix
     # Add the current date in YYYY-MM-DD HH:MM:SS format (yellow color)
-    prefix='%F{yellow}%D{%F %T}%f' 
+    prefix='%F{yellow}%D{%F %T}%f'
     # Add <user>@<hostname> (blue color)
     prefix="$prefix %F{blue}%n@%m%f"
     # Add current working directory (green color)
     # This replaces the smartwd functionality with zsh conditionals
     prefix="$prefix [%F{green}%(6~#%-3~/.../%2~#%~)%f]"
+
+    # Add the current virtualenv, if present
+    if [ -n "$VIRTUAL_ENV" ]
+    then
+        prefix="$prefix Py(%F{magenta}${VIRTUAL_ENV##*/}%f)"
+    fi
+
     # Add the status of the last command, but only if it failed
     prefix="$prefix %(?..%F{red}!! %? !!%f)"
 
