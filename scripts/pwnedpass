@@ -1,0 +1,31 @@
+#!/bin/bash
+# Script to query the pwned passwords database to see if the user
+# specified password has been leaked
+
+echo "Query Pwned Passwords Database"
+echo "Enter your password, press Ctrl-D to exit"
+
+while read -s -p 'Password: '
+do
+    HASH=$(echo -n "$REPLY" | sha1sum | awk '{ print $1 }')
+
+    PREFIX=${HASH:0:5}
+    SUFFIX=${HASH:5}
+
+    RESULT=$(curl -s -XGET https://api.pwnedpasswords.com/range/$PREFIX |
+                grep -i $SUFFIX)
+
+    # Print a newline
+    echo
+
+    if [[ -n "$RESULT" ]]
+    then
+        COUNT=${RESULT##*:}
+        COUNT=${COUNT%}
+        echo "Password has been found $COUNT times"
+    else
+        echo "Password appears to be safe to use"
+    fi
+
+    echo
+done
