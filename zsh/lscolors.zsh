@@ -44,10 +44,10 @@ DCFILE="$HOME/.dircolors"
 # a system which has the GNU coreutils installed
 if [[ -f $DCFILE ]] && [[ -s $DCFILE ]]
 then
-    if [[ ! -z `which dircolors` ]]
+    if command -v dircolors >/dev/null
     then
         eval `dircolors $DCFILE`
-    elif [[ ! -z `which gdircolors` ]]
+    elif command -v gdircolors >/dev/null
     then
         # OS X with coreutils installed from MacPorts will have
         # dircolors installed by default as gdircolors.
