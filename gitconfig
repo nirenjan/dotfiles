@@ -39,11 +39,11 @@
 	st = status --short --branch
 [commit]
 	template = ~/.git-commit-template
-[url "git://github.com/"]
+[url "https://github.com/"]
 	insteadOf = gh:
 [url "git@github.com:"]
 	pushInsteadOf = gh:
-[url "git://github.com/nirenjan/"]
+[url "https://github.com/nirenjan/"]
 	insteadOf = my:
 [url "git@github.com:nirenjan/"]
 	pushInsteadOf = my:
