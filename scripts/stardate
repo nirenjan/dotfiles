@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """ Calculate the Julian Date """
 
 import time
@@ -12,5 +12,5 @@ t = time.time()
 jd = (t / 86400.0 + 40587.5)
 
 # Use the idea that 1 Julian day is equal to 1 stardate
-print ("%05.9f" % jd)[:-7]
+print(("%05.9f" % jd)[:-7])
 
